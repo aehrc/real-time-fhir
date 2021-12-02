@@ -28,26 +28,25 @@
 		var intervalID = setInterval(update_values, 1000);
 
 		// add event to event list
-		function add_event(rtype, id, timestamp, elapsed) {
+		function add_event(rtype, id, timestamp) {
 			var resource_type = "Resource type: " + rtype + "<br/>"
 			var id = "ID: " + id + "<br/>"
 			var timestamp = "Timestamp: " + timestamp + "<br/>"
-			var time_elapsed = "Simulation time elapsed: " + elapsed
 
 			var event_list = document.getElementById("event_list");
-			event_list.innerHTML += "<li>" + resource_type + id + timestamp + time_elapsed + "</li><br/>";
+			event_list.innerHTML += "<li>" + resource_type + id + timestamp + "</li><br/>";
 		}
 
 		// check and get event from flask queue
 		function update_values() {
             $SCRIPT_ROOT = {{ (request.script_root|tojson) }};
-			$.getJSON($SCRIPT_ROOT + '/update_dash',
-			
-			function(data) {
-				if (data.event.resource !== null) {
-					count++;
-					resource_type = data.event.resource.resourceType
+			$.getJSON($SCRIPT_ROOT + '/update_dash', function(data) {
+				if (data.resource !== null) {
 
+					count++;
+					console.log(data.resource);
+					
+					resource_type = data.resource.resourceType
 					if (resourceObj.hasOwnProperty(resource_type)) {
 						resourceObj[resource_type]++;
 					} else {
@@ -59,8 +58,7 @@
 						count_str += "<li>" + resource + ": " + resourceObj[resource] + "</li>";
 					}
 					document.getElementById("count_list").innerHTML = count_str;
-					add_event(resource_type, data.event.resource.id, data.event.resource.effectiveDateTime, data.event.elapsed)
-					console.log(data.event);
+					add_event(resource_type, data.resource.id, data.resource.effectiveDateTime)
 				} else {
 					console.log('no resource');
 				}

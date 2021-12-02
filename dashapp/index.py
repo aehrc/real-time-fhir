@@ -7,6 +7,7 @@ import time
 import random
 
 from dashapp.event.generator import Generator
+from dashapp.event.reader import Reader
 
 #TODO
 # transfer to webpage within 300s (pop from stack, sliding will reset range and continue popping from stack)
@@ -33,10 +34,10 @@ def generate_events():
 @app.route('/update_dash', methods=['GET'])
 def update_dash():
     if len(events) == 0:
-        payload = {'resource': None}
+        payload = None
     else:
         payload = events.pop(0)
-    return jsonify(event=payload)
+    return jsonify(resource=payload)
 
 if __name__ == '__main__':
     socketio.run(app)
