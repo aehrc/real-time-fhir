@@ -7,7 +7,6 @@ import time
 import random
 
 from dashapp.event.generator import Generator
-from dashapp.event.reader import Reader
 
 #TODO
 # transfer to webpage within 300s (pop from stack, sliding will reset range and continue popping from stack)
@@ -25,6 +24,10 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 def dashboard():
     return render_template('dashboard.html')
 
+@app.route('/dash')
+def dash():
+    return render_template('dash.html')
+    
 @app.route('/generate_events', methods=['POST'])
 def generate_events():
     content = request.get_json()
