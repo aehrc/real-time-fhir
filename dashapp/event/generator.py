@@ -11,13 +11,10 @@ class Generator:
     def __init__(self, duration):
         self.duration = duration
 
-
     def generate_events(self):
         with open('./dashapp/input/DiagnosticReport.ndjson', 'r', encoding='latin-1',) as infile:
             events = [{'resource': json.loads(line), 'elapsed': datetime.fromisoformat(json.loads(line)['effectiveDateTime']).timestamp()} for line in infile]
-            
         return normalize_elapsed(sorted(events, key=lambda d: d['elapsed']), self.duration)
-
 
     def send_events(self, events, url, token):
         start_time = time.time()
@@ -25,10 +22,23 @@ class Generator:
             s.enter(event['elapsed'], 1, send_event, argument=(event, url, token, start_time,))
         s.run()
 
+# helper functions for Generator class
+def normalize_elapsed(events, duration):
+    range = events[-1]['elapsed'] - events[0]['elapsed']
+    min = events[0]['elapsed']
+    for event in events:
+        event['elapsed'] = (event['elapsed']-min)/range * duration
+    return events
 
+def send_single_event(event, url, token, start_time):
+    r = requests.post(url, json=event['resource'], headers={'Authorization': 'Bearer ' + token})
+    print(time.time() - start_time, r.status_code)
+
+
+class Reader():
     def request_token(self):
         # read token from file and test validity
-        with open('token.json', 'r') as infile:
+        with open('./dashapp/event/token.json', 'r') as infile:
             token = json.load(infile)['access_token']
 
         r = requests.get('***REMOVED***/fhir_r4/Patient', headers = {'Authorization': 'Bearer ' + token})
@@ -44,38 +54,30 @@ class Generator:
             jwt = r.json()
 
             # write new token to file
-            with open('token.json', 'w') as outfile:
+            with open('./dashapp/event/token.json', 'w') as outfile:
                 print('Authentication token renewed.')
                 json.dump(jwt, outfile)
             
             token = jwt['access_token']
         return token
             
-
     def search_FHIR_data(self, url, token):
         r = requests.get(url, headers = {'Authorization': 'Bearer ' + token})
-        print(r.json(), r.status_code)
+        print(url, r.status_code)
+        return r.json()
 
-# helper functions
-def normalize_elapsed(events, duration):
-    range = events[-1]['elapsed'] - events[0]['elapsed']
-    min = events[0]['elapsed']
-    for event in events:
-        event['elapsed'] = (event['elapsed']-min)/range * duration
-    return events
-
-def send_single_event(event, url, token, start_time):
-    r = requests.post(url, json=event['resource'], headers={'Authorization': 'Bearer ' + token})
-    print(time.time() - start_time, r.status_code)
 
 if __name__ == '__main__':
     url='***REMOVED***/fhir_r4/Observation'
     #url='***REMOVED***/fhir_r4/DiagnosticReport'
     #url='http://localhost:5000/generate_events'
 
-    gen = Generator(100)
-    token = gen.request_token()
-    gen.search_FHIR_data(url, token)
+    # Reader
+    reader = Reader()
+    token = reader.request_token()
+    reader.search_FHIR_data(url, token)
+
+    #gen = Generator(100)
     #events = gen.read_EHR_data()
         
     #gen.send_events(events, url)

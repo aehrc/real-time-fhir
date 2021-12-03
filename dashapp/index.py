@@ -6,7 +6,7 @@ import os
 import time
 import random
 
-from dashapp.event.generator import Generator
+from dashapp.event.generator import Generator, Reader
 
 #TODO
 # transfer to webpage within 300s (pop from stack, sliding will reset range and continue popping from stack)
@@ -20,14 +20,27 @@ app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*")
 
 @app.route('/')
+@app.route('/index')
+def dash():
+    return render_template('index.html')
+
+@app.route('/resource/<resource_type>')
+def find_resource(resource_type=None):
+    url=f'***REMOVED***/fhir_r4/{resource_type}'
+    
+    reader = Reader()
+    token = reader.request_token()
+    payload = reader.search_FHIR_data(url, token)
+
+    headers = ('ID', 'Full URL')
+    data = [(entry['resource']['id'], entry['fullUrl']) for entry in payload['entry']]
+        
+    return render_template('resource.html', title=resource_type, headers=headers, data=data)
+
 @app.route('/dashboard')
 def dashboard():
     return render_template('dashboard.html')
 
-@app.route('/dash')
-def dash():
-    return render_template('dash.html')
-    
 @app.route('/generate_events', methods=['POST'])
 def generate_events():
     content = request.get_json()

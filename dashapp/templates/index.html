@@ -1,13 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 	  <head>
-        <!--Import JQuery-->
         <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
         <script src="{{url_for('static', filename='resources.js')}}"></script>
         <meta charset="utf-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1">
-            <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
-        <title>Dashboard 2.0</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+        <title>Resource Index</title>
 	  </head>
     
     <body>
@@ -25,7 +24,7 @@
             container.innerHTML += '<div class="w3-row-padding w3-padding-16 w3-center">';
             for (let j = 0; j < 4; j++) {
                 let resource = resource_list.pop()
-                container.innerHTML += `<div class="w3-quarter"><a href=${resource}><h3>` + resource + '</h3></a></div>';
+                container.innerHTML += `<div class="w3-quarter"><a href=resource/${resource}><h3>` + resource + '</h3></a></div>';
             }
             container.innerHTML += '</div>';
         }
