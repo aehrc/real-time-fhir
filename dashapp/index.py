@@ -9,9 +9,8 @@ import random
 from dashapp.event.generator import Generator, Reader
 
 #TODO
-# transfer to webpage within 300s (pop from stack, sliding will reset range and continue popping from stack)
+# transfer to webpage within 300s (pop from stack, sliding slider will reset range and continue popping from stack)
 # build a textbox to type in values in seconds
-# slider to adjust
 # have many files (resources eg patient, medication)
 
 events = []
@@ -33,9 +32,11 @@ def find_resource(resource_type=None):
     payload = reader.search_FHIR_data(url, token)
 
     headers = ('ID', 'Full URL')
-    data = [(entry['resource']['id'], entry['fullUrl']) for entry in payload['entry']]
-        
+    data = [('NULL', 'NULL')]
+    if payload['total'] != 0:
+        data = [(entry['resource']['id'], entry['fullUrl']) for entry in payload['entry']]
     return render_template('resource.html', title=resource_type, headers=headers, data=data)
+
 
 @app.route('/dashboard')
 def dashboard():
