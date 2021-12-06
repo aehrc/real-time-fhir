@@ -145,4 +145,4 @@ const resource_list = [
   "MedicinalProductAuthorization",
   "Claim",
   "Location"
-]
+].reverse();

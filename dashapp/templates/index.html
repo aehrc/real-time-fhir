@@ -20,10 +20,11 @@
     <script>
         console.log(resource_list);
         var container = document.getElementById("container");
-        for (let i = 0; i < Math.ceil(resource_list.length/4); i++) {
+        while (resource_list.length) {
             container.innerHTML += '<div class="w3-row-padding w3-padding-16 w3-center">';
             for (let j = 0; j < 4; j++) {
                 let resource = resource_list.pop()
+                if (resource == undefined) break;
                 container.innerHTML += `<div class="w3-quarter"><a href=resource/${resource}><h3>` + resource + '</h3></a></div>';
             }
             container.innerHTML += '</div>';
