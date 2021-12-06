@@ -90,6 +90,6 @@ if __name__ == '__main__':
 
     # Generator
     gen = Generator(300)
-    events = gen.generate_events()
+    #events = gen.generate_events()
         
-    gen.send_events(events, url, token)
+    #gen.send_events(events, url, token)

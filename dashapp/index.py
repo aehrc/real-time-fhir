@@ -7,6 +7,7 @@ import time
 import random
 
 from dashapp.event.generator import Generator, Reader
+from dashapp.event.tablebuilder import TableBuilder
 
 #TODO
 # fix bugs like 'Invalid match URL "<url>" - No resources match this search'
@@ -42,13 +43,11 @@ def find_resource(resource_type=None):
         if payload['issue'][0]['severity'] == 'error':
             url=f'***REMOVED***/fhir_r4/{resource_type}'
             payload = reader.search_FHIR_data(url, token)
-
-    # define search data
-    headers = ('No.', 'ID', 'Full URL')
-    data = [('NULL', 'NULL', 'NULL')]
-
-    if payload['total'] != 0:
-        data = [(i, entry['resource']['id'], entry['fullUrl']) for i, entry in enumerate(payload['entry'])]
+    
+    # build resource table
+    tb = TableBuilder(resource_type, payload)
+    headers, data = tb.build_table()
+    
     return render_template('resource.html', title=resource_type, url=url, headers=headers, data=data)
 
 @app.route('/dashboard')
