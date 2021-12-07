@@ -13,7 +13,7 @@ from dashapp.event.tablebuilder import TableBuilder
 # fix bugs like 'Invalid match URL "<url>" - No resources match this search'
 # transfer to webpage within 300s (pop from stack, sliding slider will reset range and continue popping from stack)
 # build a textbox to type in values in seconds
-# have many files (resources eg patient, medication)
+# make patient decreased event
 
 events = []
 

@@ -9,7 +9,7 @@
         <title>Resource</title>
 	  </head>
     
-    <body style="margin-left:100px;">
+    <body>
         <div style="text-align:center">
             <h1>{{title}}</h1><p>{{url}}</p>
         </div>
@@ -17,7 +17,7 @@
         <div><p>{{error}}</p></div>
 
 
-        <table class="table">
+        <table class="table" style="margin-left:auto; margin-right:auto">
             <tr class="table__header">
                 {% for header in headers %}
                 <th class="table__cell">{{ header }}</th>
