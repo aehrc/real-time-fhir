@@ -15,10 +15,10 @@ class TableBuilder:
     # appending two or more columns: self.table = np.c_[self.table, col]  
     ###
     def build_table(self):
-        if self.payload['total'] != 0:
+        if 'entry' in self.payload:
             # build table metadata
             self.headers = ['No.', 'ID', 'Full URL']
-            self.table = np.asarray([[i, entry['resource']['id'], entry['fullUrl']] for i, entry in enumerate(self.payload['entry'])])
+            self.table = np.asarray([[i+1, entry['resource']['id'], entry['fullUrl']] for i, entry in enumerate(self.payload['entry'])])
             last_updated_col = np.array([entry['resource']['meta']['lastUpdated'] for entry in self.payload['entry']])
 
             # build optional table content

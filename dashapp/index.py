@@ -37,10 +37,12 @@ def find_resource(resource_type=None):
     if len(url_params) > 1:
         url += '?' + url_params
     payload = reader.search_FHIR_data(url, token)
+    error_msg = ''
 
     # handle error by removing params from url and get payload again
     if payload['resourceType'] == 'OperationOutcome':
         if payload['issue'][0]['severity'] == 'error':
+            error_msg = payload
             url=f'***REMOVED***/fhir_r4/{resource_type}'
             payload = reader.search_FHIR_data(url, token)
     
@@ -48,7 +50,7 @@ def find_resource(resource_type=None):
     tb = TableBuilder(resource_type, payload)
     headers, data = tb.build_table()
     
-    return render_template('resource.html', title=resource_type, url=url, headers=headers, data=data)
+    return render_template('resource.html', title=resource_type, url=url, headers=headers, data=data, error=error_msg)
 
 @app.route('/dashboard')
 def dashboard():
