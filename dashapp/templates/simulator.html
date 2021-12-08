@@ -13,7 +13,7 @@
 		<h1 style="text-align:center; margin:30px;">Simulator</h1>
 		
 		<div class="container-lg">
-			
+			<!--Resource List Dropdown-->
 			<div class="form-group" style="margin-bottom:20px;">
 				<label for="select-rtype">Resource Type</label>
 				<select class="form-select" id='select-rtype'>
@@ -25,28 +25,37 @@
 					<option value="Immunization">Immunization</option>
 					<option value="MedicationAdministration">MedicationAdministration</option>
 					<option value="Observation">Observation</option>
-					<option value="performedPeriod">performedPeriod</option>
+					<option value="Procedure">Procedure</option>
 				</select>
 			</div>
 
+			<!--Duration Textbox-->
 			<div class="form-group" style="margin-bottom:20px;">
 				<label for="input-duration">Duration</label>
 				<input type="text" class="form-control" id="input-duration" aria-describedby="duration-help" placeholder="Enter Simulation Duration" required>
 				<small id="duration-help" class="form-text text-muted">Enter duration in seconds. E.g. 3600 for 1 hour.</small>
 			</div>
-			
-			<button type="button" class="btn btn-primary" onclick=verifyForm()>Simulate Events</button>
-			<span id='simulation-status' style="margin:10px;"></span>
+
+			<!--Button-->
+			<button id="submit-button" type="button" class="btn btn-primary" onclick=verifyForm()>Simulate Events</button>
+			<span id='simulation-status' style="margin:20px;"></span>
 
 			<!--Slider-->
-			<div style="margin-top:50px;">
-				<input type="range" min="0" max="100" value="50" step="10" class="form-range" id="slider-range" oninput="displaySliderVal(this.value, this.id)" disabled>
-				<span>Value: </span>
-				<span id="slider-val">50</span>
+			<div style="margin-top:60px;">
+				<input type="range" min="0" max="1" value="0" step="10" class="form-range" id="slider-range" oninput="displaySliderVal(this.value, this.id)" disabled>
+				<small id='slider-min' class="text-muted" style="float:left; margin-top:-5px;">0</small>
+				<small id='slider-max' class="text-muted" style="float:right; margin-top:-5px;">100</small>
+
+				<div style="margin-top:35px;"><b>
+					<b></b><span>Resource Type: </span>
+					<span id="rtype-val">None</span></span></b>
+				</div>
+				<div style="margin-top:10px;">
+					<b><span>Duration: </span>
+					<span id="duration-val">0</span><span> seconds</span></b>
+				</div>
 			</div>
 		</div>
-
-
 	</body>
 	
 	<!-- Verify and start simulation -->
@@ -61,29 +70,44 @@
 				document.getElementById("simulation-status").innerHTML = 'Enter a valid duration.';
 			}
 			else {
+				document.getElementById("rtype-val").innerHTML = rtype;
+				document.getElementById("duration-val").innerHTML = duration;
 				startSimulation(rtype, duration);
 			}
 		}
 
 		function startSimulation(resource_type, duration) {
 			document.getElementById("simulation-status").innerHTML = '<b>Simulation started. Drag the slider to tweak duration by +-25%<b>';
+			
+			if (duration >= 180) {
+				var max = Math.ceil(duration*1.25/10) * 10;
+				var min = Math.floor(duration*0.75/10) * 10;
+				var step = 5;
+			}
+			else {
+				var max = Math.ceil(duration*1.25);
+				var min = Math.floor(duration*0.75);
+				var step = 1;
+			}
+
+			// set slider attributes
+			document.getElementById("slider-range").min = min;
+			document.getElementById("slider-range").max = max;
+			document.getElementById("slider-range").step = step;
+			document.getElementById("slider-range").value = duration;
 			document.getElementById("slider-range").disabled = false;
-			var step = Math.floor(duration/10);
-			var max = Math.ceil(duration*1.25);
-			var min = Math.floor(duration*0.75);
-			if (step == 0) step = 1;
+			document.getElementById("slider-min").innerHTML = min;
+			document.getElementById("slider-max").innerHTML = max;
+			document.getElementById("submit-button").disabled = true;
 
-			console.log(step + '\n' + max + '\n' + min)
-
-
-
+			socket.emit('start_simulation', {'rtype': resource_type, 'duration':duration})
 		}
 	</script>
 
 	<!-- Display slider value -->
 	<script>
-		function displaySliderVal(val, id) {
-			document.getElementById("slider-val").innerHTML = val;
+		function displaySliderVal(val) {
+			document.getElementById("duration-val").innerHTML = val;
 		}
 	</script>
 	
@@ -92,10 +116,9 @@
 		var socket = io()
 
 		function SendSliderVal() {
-			socket.emit('update',
-			{'slider':$('#slider-range').val()})
+			socket.emit('update_duration', {'duration': $('#slider-range').val()})
 		}
-		sending = setInterval(SendSliderVal, 5000);
+		sending = setInterval(SendSliderVal, 10000);
 	</script>
 </html>
 	

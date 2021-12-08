@@ -56,9 +56,29 @@ def find_resource(resource_type=None):
 def dashboard():
     return render_template('simulator.html')
 
-@socketio.on('update')
-def update(data):
-    print('Current Value', data['slider'])
+@socketio.on('start_simulation')
+def start_simulation(data):
+    print('Resource Type ', data['rtype'], '  Current Value ', data['duration'])
+    
+    reader = Reader()
+    token = reader.request_token()
+    
+    gen = Generator(data['duration'], data['rtype'])
+    events = gen.generate_events()
+    gen.send_events(events, token)
+
+@socketio.on('update_duration')
+def update_duration(data):
+    print('Current Value ', data['duration'])
+    
+    if data['duration'] == 0: 
+        return ''
+
+    #if data['duration'] != gen.get_duration():
+    #    gen.set_duration()
+
+
+
 
 
 '''

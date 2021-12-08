@@ -9,20 +9,28 @@ s = sched.scheduler(time.time)
 
 # Generates and send events via POST to FHIR client
 class Generator:
-    def __init__(self, duration):
+    def __init__(self, duration, resource_type):
         self.duration = duration
+        self.resource_type = resource_type
+    
+    def get_duration(self):
+        return self.duration
+
+    def set_duration(self, duration_new):
+        self.duration = duration_new
+        #pause and continue
 
     # generate normalized and sorted (elapsed, FHIR resource) key-value pairs 
-    def generate_events(self, resource_type):
-        src_path = f'/home/yeexianfong/real-time-fhir/dashapp/input/{resource_type}.ndjson'
-        timestamp_list = load_json_timestamps(src_path, resource_type)
+    def generate_events(self):
+        src_path = f'/home/yeexianfong/real-time-fhir/dashapp/input/{self.resource_type}.ndjson'
+        timestamp_list = load_json_timestamps(src_path, self.resource_type)
         with open(src_path, 'r', encoding='latin-1',) as infile:
             events = [{'resource': json.loads(line), 'elapsed': datetime.fromisoformat(timestamp_list[i]).timestamp()} for i, line in enumerate(infile)]
         return normalize_elapsed(sorted(events, key=lambda d: d['elapsed']), self.duration)
 
     # start timer and send events to FHIR client
-    def send_events(self, events, resource_type, token):
-        dst_url = f'***REMOVED***/fhir_r4/{resource_type}'
+    def send_events(self, events, token):
+        dst_url = f'***REMOVED***/fhir_r4/{self.resource_type}'
         start_time = time.time()
         for event in events:
             put_url = dst_url + '/' + event['resource']['id']
@@ -149,16 +157,14 @@ class Reader():
 
 # main function
 if __name__ == '__main__':
-    resource_type_to_send = 'Provenance'
-
     # request token first
     reader = Reader()
     token = reader.request_token()
 
     # generate events
-    gen = Generator(30)
-    events = gen.generate_events(resource_type_to_send)
-    gen.send_events(events, resource_type_to_send, token)
+    gen = Generator(120, 'Immunization')
+    events = gen.generate_events()
+    gen.send_events(events, token)
 
     # for adding non-events and bundles
     # gen.add_bundle(token)
