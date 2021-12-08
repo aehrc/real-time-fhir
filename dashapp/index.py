@@ -10,10 +10,10 @@ from dashapp.event.generator import Generator, Reader
 from dashapp.event.tablebuilder import TableBuilder
 
 #TODO
-# fix bugs like 'Invalid match URL "<url>" - No resources match this search'
+# remove duplicates by deleting (via PostgresSQL)
 # transfer to webpage within 300s (pop from stack, sliding slider will reset range and continue popping from stack)
 # build a textbox to type in values in seconds
-# make patient decreased event
+# make patient deceased event
 
 events = []
 
@@ -52,6 +52,16 @@ def find_resource(resource_type=None):
     
     return render_template('resource.html', title=resource_type, url=url, headers=headers, data=data, error=error_msg)
 
+@app.route('/simulator')
+def dashboard():
+    return render_template('simulator.html')
+
+@socketio.on('update')
+def update(data):
+    print('Current Value', data['slider'])
+
+
+'''
 @app.route('/dashboard')
 def dashboard():
     return render_template('dashboard.html')
@@ -69,7 +79,7 @@ def update_dash():
     else:
         payload = events.pop(0)
     return jsonify(resource=payload)
-
+'''
 if __name__ == '__main__':
     socketio.run(app)
     

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.1.1/socket.io.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js"></script>
+		<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet">
+		<meta charset="utf-8">
+		<title>Dashboard</title>
+	</head>
+	
+	<body style="font-size: large;">
+		<h1 style="text-align:center; margin:30px;">Simulator</h1>
+		
+		<div class="container-lg">
+			
+			<div class="form-group" style="margin-bottom:20px;">
+				<label for="select-rtype">Resource Type</label>
+				<select class="form-select" id='select-rtype'>
+					<option selected>None</option>
+					<option value="AllergyIntolerance">AllergyIntolerance</option>
+					<option value="CarePlan">CarePlan</option>
+					<option value="Claim">Claim</option>
+					<option value="DiagnosticReport">DiagnosticReport</option>
+					<option value="Immunization">Immunization</option>
+					<option value="MedicationAdministration">MedicationAdministration</option>
+					<option value="Observation">Observation</option>
+					<option value="performedPeriod">performedPeriod</option>
+				</select>
+			</div>
+
+			<div class="form-group" style="margin-bottom:20px;">
+				<label for="input-duration">Duration</label>
+				<input type="text" class="form-control" id="input-duration" aria-describedby="duration-help" placeholder="Enter Simulation Duration" required>
+				<small id="duration-help" class="form-text text-muted">Enter duration in seconds. E.g. 3600 for 1 hour.</small>
+			</div>
+			
+			<button type="button" class="btn btn-primary" onclick=verifyForm()>Simulate Events</button>
+			<span id='simulation-status' style="margin:10px;"></span>
+
+			<!--Slider-->
+			<div style="margin-top:50px;">
+				<input type="range" min="0" max="100" value="50" step="10" class="form-range" id="slider-range" oninput="displaySliderVal(this.value, this.id)" disabled>
+				<span>Value: </span>
+				<span id="slider-val">50</span>
+			</div>
+		</div>
+
+
+	</body>
+	
+	<!-- Verify and start simulation -->
+	<script>
+		function verifyForm() {
+			var rtype = document.getElementById('select-rtype').value;
+			var duration = parseInt(document.getElementById('input-duration').value);
+			if (rtype == 'None') {
+				document.getElementById("simulation-status").innerHTML = 'Choose a resource type.';
+			}
+			else if (duration == '' || isNaN(duration) || duration < 2) {
+				document.getElementById("simulation-status").innerHTML = 'Enter a valid duration.';
+			}
+			else {
+				startSimulation(rtype, duration);
+			}
+		}
+
+		function startSimulation(resource_type, duration) {
+			document.getElementById("simulation-status").innerHTML = '<b>Simulation started. Drag the slider to tweak duration by +-25%<b>';
+			document.getElementById("slider-range").disabled = false;
+			var step = Math.floor(duration/10);
+			var max = Math.ceil(duration*1.25);
+			var min = Math.floor(duration*0.75);
+			if (step == 0) step = 1;
+
+			console.log(step + '\n' + max + '\n' + min)
+
+
+
+		}
+	</script>
+
+	<!-- Display slider value -->
+	<script>
+		function displaySliderVal(val, id) {
+			document.getElementById("slider-val").innerHTML = val;
+		}
+	</script>
+	
+	<!-- Send slider value to Flask via socket -->
+	<script type="text/javascript">
+		var socket = io()
+
+		function SendSliderVal() {
+			socket.emit('update',
+			{'slider':$('#slider-range').val()})
+		}
+		sending = setInterval(SendSliderVal, 5000);
+	</script>
+</html>
+	
+	
