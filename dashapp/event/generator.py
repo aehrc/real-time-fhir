@@ -9,16 +9,38 @@ s = sched.scheduler(time.time)
 
 # Generates and send events via POST to FHIR client
 class Generator:
-    def __init__(self, duration, resource_type):
+    def __init__(self, token):
+        self.duration = 0
+        self.elapsed_offset = 0
+        self.resource_type = None
+        self.events = []
+        self.token = token
+        self.is_interrupted = False
+        self.is_completed = False
+    
+    def set_duration_and_rtype(self, duration, resource_type):
         self.duration = duration
         self.resource_type = resource_type
-    
+
     def get_duration(self):
         return self.duration
+    '''
+    def tweak_duration(self, duration_new):
+        self.duration = duration_new-self.elapsed_offset
+        self.is_interrupted = True
+        list(map(s.cancel, s.queue))
+        self.events = normalize_elapsed(self.events, self.duration)
+        self.send_events()
+        # TODO new duration - total elapsed
+        # Remaining items
+        # display last modified items below the simulator
+    '''
 
-    def set_duration(self, duration_new):
-        self.duration = duration_new
-        #pause and continue
+    def get_is_completed(self):
+        return self.is_completed
+
+    def set_is_completed_false(self):
+        self.is_completed = False
 
     # generate normalized and sorted (elapsed, FHIR resource) key-value pairs 
     def generate_events(self):
@@ -26,20 +48,35 @@ class Generator:
         timestamp_list = load_json_timestamps(src_path, self.resource_type)
         with open(src_path, 'r', encoding='latin-1',) as infile:
             events = [{'resource': json.loads(line), 'elapsed': datetime.fromisoformat(timestamp_list[i]).timestamp()} for i, line in enumerate(infile)]
-        return normalize_elapsed(sorted(events, key=lambda d: d['elapsed']), self.duration)
+        self.events = normalize_elapsed(sorted(events, key=lambda d: d['elapsed']), self.duration)
 
     # start timer and send events to FHIR client
-    def send_events(self, events, token):
+    def send_events(self):
         dst_url = f'***REMOVED***/fhir_r4/{self.resource_type}'
-        start_time = time.time()
-        for event in events:
+        start_time = time.time() + self.elapsed_offset
+        for i, event in enumerate(self.events):
             put_url = dst_url + '/' + event['resource']['id']
-            s.enter(event['elapsed'], 1, send_single_event, argument=(event, put_url, token, start_time,))
+            s.enter(event['elapsed'], 1, self.send_single_event, argument=(event, put_url, i, start_time))
         s.run()
+
+        if len(self.events) == 0:
+            print('Simulation completed.\n')
+            self.is_completed = True
     
+    # function for sending single event 
+    def send_single_event(self, event, put_url, idx, start_time):
+        r = requests.put(put_url, json=event['resource'], headers={'Authorization': 'Bearer ' + self.token})
+        print(len(self.events)-idx, time.time() - start_time, event['resource']['id'], r.status_code)
+        
+        if self.events:
+            self.events.pop(0)
+        
+        if r.status_code == 404 or r.status_code == 400 or r.status_code == 412:
+            print(r.json(), '\n\n')
+
     # add non-event resources to FHIR client
-    def add_bundle(self, token):
-        with open('/home/yeexianfong/real-time-fhir/dashapp/input/practitionerInformation1637908093743.json', 'r', encoding='latin-1',) as infile:
+    def add_bundle(self):
+        with open('/home/yeexianfong/real-time-fhir/dashapp/input/hospitalInformation-test.json', 'r', encoding='latin-1',) as infile:
             json_data = json.load(infile)
 
         # data cleaning
@@ -48,12 +85,10 @@ class Generator:
             entry['request']['url'] += '/' + entry['resource']['id']
             if 'ifNoneExist' in entry['request']:
                 del entry['request']['ifNoneExist']
-
+        
         # post bundle
-        r = requests.post('***REMOVED***/fhir_r4/', json=json_data, headers={'Authorization': 'Bearer ' + token})
-        print(r.status_code)      
-        if r.status_code == 404 or r.status_code == 400:
-            print(r.json(), '\n\n\n')  
+        r = requests.post('***REMOVED***/fhir_r4/', json=json_data, headers={'Authorization': 'Bearer ' + self.token})
+        print(r.json(), '\n')  
 
 
 ### helper functions for Generator class
@@ -67,13 +102,19 @@ def normalize_elapsed(events, duration):
     for event in events:
         event['elapsed'] = (event['elapsed']-min)/range * duration
     return events
-
+'''
 # function for sending single event 
-def send_single_event(event, put_url, token, start_time):
+def send_single_event(event, put_url, token, idx, start_time, events_list, is_interrupted):
     r = requests.put(put_url, json=event['resource'], headers={'Authorization': 'Bearer ' + token})
-    print(time.time() - start_time, event['resource']['id'], r.status_code)
+    print(idx, time.time() - start_time, event['resource']['id'], r.status_code)
+
+    if events_list:
+        events_list.pop(0)
+    
     if r.status_code == 404 or r.status_code == 400 or r.status_code == 412:
         print(r.json(), '\n\n')
+    '''
+        
         
 def load_json_timestamps(source_path, rtype):
     with open(source_path, 'r', encoding='latin-1',) as infile:
@@ -148,12 +189,6 @@ class Reader():
         print(url, r.status_code)
         return r.json()
     
-    '''
-    def delete_FHIR_data(self, url, token):
-        r = requests.delete(url, headers = {'Authorization': 'Bearer ' + token})
-        print(url, r.status_code)
-        print(r.json())
-    '''
 
 # main function
 if __name__ == '__main__':
@@ -162,9 +197,10 @@ if __name__ == '__main__':
     token = reader.request_token()
 
     # generate events
-    gen = Generator(120, 'Immunization')
-    events = gen.generate_events()
-    gen.send_events(events, token)
+    gen = Generator(token)
+    #gen.set_duration_and_rtype(20, 'CarePlan')
+    #gen.generate_events()
+    #gen.send_events()
 
     # for adding non-events and bundles
-    # gen.add_bundle(token)
+    gen.add_bundle()

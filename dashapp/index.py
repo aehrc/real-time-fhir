@@ -1,5 +1,5 @@
 from flask import Flask, jsonify, request, render_template
-from flask_socketio import SocketIO
+from flask_socketio import SocketIO, emit
 import json
 import requests
 import os
@@ -20,6 +20,10 @@ events = []
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*")
 
+reader = Reader()
+token = reader.request_token()
+gen = Generator(token)
+
 @app.route('/')
 @app.route('/index')
 def dash():
@@ -27,10 +31,6 @@ def dash():
 
 @app.route('/resource/<resource_type>')
 def find_resource(resource_type=None):
-    # request token
-    reader = Reader()
-    token = reader.request_token()
-
     # define url and GET resource payload
     url=f'***REMOVED***/fhir_r4/{resource_type}'
     url_params = request.query_string.decode('ascii')
@@ -58,24 +58,34 @@ def dashboard():
 
 @socketio.on('start_simulation')
 def start_simulation(data):
-    print('Resource Type ', data['rtype'], '  Current Value ', data['duration'])
+    print('Resource Type:', data['rtype'], '  Duration:', data['duration'])
     
-    reader = Reader()
-    token = reader.request_token()
+    gen.set_duration_and_rtype(data['duration'], data['rtype'])
+    gen.generate_events()
+    gen.send_events()
     
-    gen = Generator(data['duration'], data['rtype'])
-    events = gen.generate_events()
-    gen.send_events(events, token)
+    if gen.get_is_completed():
+        gen.set_is_completed_false()
+        emit('Completion Status', True)
 
 @socketio.on('update_duration')
 def update_duration(data):
-    print('Current Value ', data['duration'])
+    #print('Current Duration', data['duration'])
     
-    if data['duration'] == 0: 
+    if data['duration'] == 0 or gen.get_duration() == 0: 
         return ''
-
-    #if data['duration'] != gen.get_duration():
-    #    gen.set_duration()
+    
+    #try:
+    if data['duration'] != gen.get_duration():
+        emit('Update Duration', data['duration'])
+        gen.tweak_duration(data['duration'])
+        if gen.get_is_completed():
+            gen.set_is_completed_false()
+            emit('Completion Status', True)
+    #except:
+        #print('No resource defined')
+    
+        #gen.change_duration(30) 
 
 
 
