@@ -6,13 +6,11 @@ import os
 import time
 import random
 
-from dashapp.event.generator import Generator, Reader
+from dashapp.event.generator import Generator
+from dashapp.event.reader import Reader
 from dashapp.event.tablebuilder import TableBuilder
 
 #TODO
-# remove duplicates by deleting (via PostgresSQL)
-# transfer to webpage within 300s (pop from stack, sliding slider will reset range and continue popping from stack)
-# build a textbox to type in values in seconds
 # make patient deceased event
 
 events = []
@@ -63,53 +61,28 @@ def start_simulation(data):
     gen.set_duration_and_rtype(data['duration'], data['rtype'])
     gen.generate_events()
     gen.send_events()
-    
-    if gen.get_is_completed():
-        gen.set_is_completed_false()
-        emit('Completion Status', True)
+    verify_completion()
+
+@socketio.on('stop_simulation')
+def stop_simulation(data):
+    gen.stop_events()
 
 @socketio.on('update_duration')
 def update_duration(data):
-    #print('Current Duration', data['duration'])
     
     if data['duration'] == 0 or gen.get_duration() == 0: 
         return ''
     
-    #try:
     if data['duration'] != gen.get_duration():
         emit('Update Duration', data['duration'])
         gen.tweak_duration(data['duration'])
-        if gen.get_is_completed():
-            gen.set_is_completed_false()
-            emit('Completion Status', True)
-    #except:
-        #print('No resource defined')
-    
-        #gen.change_duration(30) 
+        verify_completion()
 
+def verify_completion():
+    if gen.get_is_completed():
+        gen.set_is_completed_false()
+        emit('Completion Status', True)
 
-
-
-
-'''
-@app.route('/dashboard')
-def dashboard():
-    return render_template('dashboard.html')
-
-@app.route('/generate_events', methods=['POST'])
-def generate_events():
-    content = request.get_json()
-    events.append(content)
-    return ''
-
-@app.route('/update_dash', methods=['GET'])
-def update_dash():
-    if len(events) == 0:
-        payload = None
-    else:
-        payload = events.pop(0)
-    return jsonify(resource=payload)
-'''
 if __name__ == '__main__':
     socketio.run(app)
     

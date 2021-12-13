@@ -24,22 +24,30 @@ class Generator:
 
     def get_duration(self):
         return self.duration
-    '''
+    
     def tweak_duration(self, duration_new):
-        self.duration = duration_new-self.elapsed_offset
+        self.duration = duration_new
         self.is_interrupted = True
         list(map(s.cancel, s.queue))
-        self.events = normalize_elapsed(self.events, self.duration)
+        self.events = normalize_elapsed(self.events, duration_new-self.elapsed_offset)
         self.send_events()
-        # TODO new duration - total elapsed
-        # Remaining items
-        # display last modified items below the simulator
-    '''
-
+    
     def get_is_completed(self):
         return self.is_completed
 
     def set_is_completed_false(self):
+        self.is_completed = False
+    
+    def stop_events(self):
+        list(map(s.cancel, s.queue))
+        self.reset_variables()
+
+    def reset_variables(self):
+        self.duration = 0
+        self.elapsed_offset = 0
+        self.resource_type = None
+        self.events = []
+        self.is_interrupted = False
         self.is_completed = False
 
     # generate normalized and sorted (elapsed, FHIR resource) key-value pairs 
@@ -53,21 +61,23 @@ class Generator:
     # start timer and send events to FHIR client
     def send_events(self):
         dst_url = f'***REMOVED***/fhir_r4/{self.resource_type}'
-        start_time = time.time() + self.elapsed_offset
+        start_time = time.time()
+        offset = self.elapsed_offset
         for i, event in enumerate(self.events):
             put_url = dst_url + '/' + event['resource']['id']
-            s.enter(event['elapsed'], 1, self.send_single_event, argument=(event, put_url, i, start_time))
+            s.enter(event['elapsed'], 1, self.send_single_event, argument=(event, put_url, i, start_time, offset))
         s.run()
 
         if len(self.events) == 0:
             print('Simulation completed.\n')
+            self.reset_variables()
             self.is_completed = True
-    
+
     # function for sending single event 
-    def send_single_event(self, event, put_url, idx, start_time):
+    def send_single_event(self, event, put_url, idx, start_time, time_offset):
         r = requests.put(put_url, json=event['resource'], headers={'Authorization': 'Bearer ' + self.token})
-        print(len(self.events)-idx, time.time() - start_time, event['resource']['id'], r.status_code)
-        
+        print(len(self.events), time.time() - start_time + time_offset, event['resource']['id'], r.status_code)
+        self.elapsed_offset = time.time() - start_time
         if self.events:
             self.events.pop(0)
         
@@ -76,7 +86,7 @@ class Generator:
 
     # add non-event resources to FHIR client
     def add_bundle(self):
-        with open('/home/yeexianfong/real-time-fhir/dashapp/input/hospitalInformation-test.json', 'r', encoding='latin-1',) as infile:
+        with open('/home/yeexianfong/real-time-fhir/dashapp/input/practitionerInformation1637908093743.json', 'r', encoding='latin-1',) as infile:
             json_data = json.load(infile)
 
         # data cleaning
@@ -88,7 +98,8 @@ class Generator:
         
         # post bundle
         r = requests.post('***REMOVED***/fhir_r4/', json=json_data, headers={'Authorization': 'Bearer ' + self.token})
-        print(r.json(), '\n')  
+        print(r.status_code)      
+        print(r.json(), '\n')
 
 
 ### helper functions for Generator class
@@ -102,19 +113,7 @@ def normalize_elapsed(events, duration):
     for event in events:
         event['elapsed'] = (event['elapsed']-min)/range * duration
     return events
-'''
-# function for sending single event 
-def send_single_event(event, put_url, token, idx, start_time, events_list, is_interrupted):
-    r = requests.put(put_url, json=event['resource'], headers={'Authorization': 'Bearer ' + token})
-    print(idx, time.time() - start_time, event['resource']['id'], r.status_code)
-
-    if events_list:
-        events_list.pop(0)
     
-    if r.status_code == 404 or r.status_code == 400 or r.status_code == 412:
-        print(r.json(), '\n\n')
-    '''
-        
         
 def load_json_timestamps(source_path, rtype):
     with open(source_path, 'r', encoding='latin-1',) as infile:
@@ -151,56 +150,3 @@ def load_json_timestamps(source_path, rtype):
         if rtype == 'Provenance':
             return [json.loads(line)['recorded'] for line in infile]
     return None
-        
-
-# Get access token and resources via GET from FHIR client
-class Reader():
-    # test old token validity and auto renews token
-    def request_token(self):
-        # read old token from file
-        #with open('./dashapp/event/token.json', 'r') as infile:
-        with open('/home/yeexianfong/real-time-fhir/dashapp/event/token.json', 'r') as infile:
-            token = json.load(infile)['access_token']
-
-        r = requests.get('***REMOVED***/fhir_r4/Patient', headers = {'Authorization': 'Bearer ' + token})
-
-        # request new token if token expired
-        if r.status_code == 401:
-            data = {
-                'grant_type': 'client_credentials',
-                'scope': "system/*.read system/*.write",
-                'client_id': "real-time-fhir",
-            }
-            r = requests.post('***REMOVED***/smartsec_r4/oauth/token', data=data)
-            jwt = r.json()
-            token = jwt['access_token']
-
-            # write new token to file
-            #with open('./dashapp/event/token.json', 'w') as outfile:
-            with open('/home/yeexianfong/real-time-fhir/dashapp/event/token.json', 'w') as outfile:
-                print('Authentication token renewed.')
-                json.dump(jwt, outfile)
-
-        return token
-    
-    # search and GET FHIR data based on url
-    def search_FHIR_data(self, url, token):
-        r = requests.get(url, headers = {'Authorization': 'Bearer ' + token})
-        print(url, r.status_code)
-        return r.json()
-    
-
-# main function
-if __name__ == '__main__':
-    # request token first
-    reader = Reader()
-    token = reader.request_token()
-
-    # generate events
-    gen = Generator(token)
-    #gen.set_duration_and_rtype(20, 'CarePlan')
-    #gen.generate_events()
-    #gen.send_events()
-
-    # for adding non-events and bundles
-    gen.add_bundle()

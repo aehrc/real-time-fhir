@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
+		<link rel='stylesheet' href="{{url_for('static', filename='style.css')}}"/>
+        <script src="{{url_for('static', filename='stopwatch.js')}}"></script>
 		<script src="https://code.jquery.com/jquery-3.5.1.js"></script>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.1.1/socket.io.js"></script>
 		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js"></script>
@@ -37,8 +39,9 @@
 			</div>
 
 			<!--Button-->
-			<button id="submit-button" type="button" class="btn btn-primary" onclick=verifyForm()>Simulate Events</button>
+			<button id="start-button" type="button" class="btn btn-primary" onclick=verifyForm()>Simulate Events</button>
 			<b><span id='simulation-status' style="margin:20px;"></span></b>
+			<button id="stop-button" type="button" class="btn btn btn-danger" style="float:right" onclick=StopSimulation() disabled>Stop Simulation</button>
 
 			<!--Slider-->
 			<div style="margin-top:60px;">
@@ -46,9 +49,16 @@
 				<small id='slider-min' class="text-muted" style="float:left; margin-top:-5px;">0</small>
 				<small id='slider-max' class="text-muted" style="float:right; margin-top:-5px;">100</small>
 
-				<b><div style="margin-top:35px;"><span>Resource Type: </span><span id="rtype-val">None</span></div></b>
-				<b><div style="margin-top:10px;"><span>Remaining Events: </span><span id="remaining-val">0</span></div></b>
-				<b><div style="margin-top:10px;"><span>Slider: </span><span id="duration-val">0</span><span> seconds</span></div></b>
+				<div style="margin-top:35px;"><b><span>Resource Type: </span><span id="rtype-val">None</span></div></b>
+				<div class="simulation-span"><b>
+					<span>Time Elapsed: </span>
+					<span id="elapsed-h">00</span> :
+					<span id="elapsed-m">00</span> :
+					<span id="elapsed-s">00</span> :
+					<span id="elapsed-ms">00</span>
+				</b></div>
+				<div class="simulation-span"><b><span>Remaining Events: </span><span id="remaining-val">0</span></div></b>
+				<div class="simulation-span"><b><span>Slider: </span><span id="duration-val">0</span><span> seconds</span></div></b>
 				<small id="updated-duration" class="form-text text-muted"></small></br>
 				<small id="refresh-interval" class="form-text text-muted"></small>
 
@@ -75,16 +85,18 @@
 		}
 
 		function startSimulation(resource_type, duration) {
-			document.getElementById("simulation-status").innerHTML = 'Simulation started. Drag the slider to tweak duration by +-25%';
+			startStopwatch()
+			send_slider = setInterval(SendSliderVal, 5000);
+			document.getElementById("simulation-status").innerHTML = 'Simulation started. Drag the slider to tweak duration by +50%';
 			
 			if (duration >= 180) {
-				var max = Math.ceil(duration*1.25/10) * 10;
-				var min = Math.floor(duration*0.75/10) * 10;
+				var max = Math.ceil(duration*1.5/10) * 10;
+				var min = Math.floor(duration*0.5/10) * 10;
 				var step = 5;
 			}
 			else {
-				var max = Math.ceil(duration*1.25);
-				var min = Math.floor(duration*0.75);
+				var max = Math.ceil(duration*1.5);
+				var min = Math.floor(duration*0.5);
 				var step = 1;
 			}
 
@@ -96,10 +108,11 @@
 			document.getElementById("slider-range").disabled = false;
 			document.getElementById("slider-min").innerHTML = min;
 			document.getElementById("slider-max").innerHTML = max;
-			document.getElementById("submit-button").disabled = true;
+			document.getElementById("start-button").disabled = true;
+			document.getElementById("stop-button").disabled = false;
 			document.getElementById("updated-duration").innerHTML = 'Current simulation duration: ' + duration + ' seconds'
 			document.getElementById("refresh-interval").innerHTML = 'Refresh interval: ' + interval/1000 + ' seconds'
-
+			
 			socket.emit('start_simulation', {'rtype': resource_type, 'duration':duration})
 		}
 	</script>
@@ -108,7 +121,33 @@
 	<script>
 		function displaySliderVal(val) {
 			document.getElementById("duration-val").innerHTML = val;
+		}
+	</script>
 
+	<!-- Stopwatch operations -->
+	<script>
+		
+	</script>
+
+	<!-- Reset Variables -->
+	<script>
+		function resetVariables() {
+			document.getElementById("slider-range").min = 0;
+			document.getElementById("slider-range").max = 100;
+			document.getElementById("slider-range").step = 10;
+			document.getElementById("slider-range").value = 0;
+			document.getElementById("slider-range").disabled = true;
+			document.getElementById("slider-min").innerHTML = 0;
+			document.getElementById("slider-max").innerHTML = 100;
+			document.getElementById("start-button").disabled = false;
+			document.getElementById("stop-button").disabled = true;
+			document.getElementById("rtype-val").innerHTML = 'None';
+			document.getElementById("duration-val").innerHTML = '0';
+			document.getElementById("simulation-status").innerHTML = 'Simulation completed.'
+			document.getElementById("updated-duration").innerHTML = ''
+			document.getElementById("refresh-interval").innerHTML = ''
+			resetStopwatch();
+			clearInterval(send_slider);
 		}
 	</script>
 	
@@ -116,28 +155,18 @@
 	<script type="text/javascript">
 		var socket = io()
 
+		function StopSimulation() {
+			socket.emit('stop_simulation', true)
+			resetVariables();
+		}
+
 		function SendSliderVal() {
 			socket.emit('update_duration', {'duration': parseInt($('#slider-range').val())})
 		}
-		interval = 5000;
-		sending = setInterval(SendSliderVal, interval);
 
 		socket.on('Completion Status', function(data) {
 			if (data == true) {
-				document.getElementById("slider-range").min = 0;
-				document.getElementById("slider-range").max = 100;
-				document.getElementById("slider-range").step = 10;
-				document.getElementById("slider-range").value = 0;
-				document.getElementById("slider-range").disabled = true;
-				document.getElementById("slider-min").innerHTML = 0;
-				document.getElementById("slider-max").innerHTML = 100;
-				document.getElementById("submit-button").disabled = false;
-				document.getElementById("rtype-val").innerHTML = 'None';
-				document.getElementById("duration-val").innerHTML = '0';
-				document.getElementById("simulation-status").innerHTML = 'Simulation completed.'
-				document.getElementById("updated-duration").innerHTML = ''
-				document.getElementById("refresh-interval").innerHTML = ''
-
+				resetVariables();
 			}
 		});
 
@@ -147,4 +176,6 @@
 	</script>
 </html>
 	
-	
+
+
+<!--time elapsed, number of remaining, post events in webpage-->
