@@ -3,7 +3,7 @@ import os
 
 # Generates and send events via POST to FHIR client
 class Referencer:
-    def get_single_bundle(self, json_line):
+    def build_single_bundle(self, json_line):
         # find references recusively within a resource
         reference_list = []
         for key, val in json.loads(json_line).items():

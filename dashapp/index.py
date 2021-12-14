@@ -1,22 +1,31 @@
-from flask import Flask, jsonify, request, render_template
-from flask_socketio import SocketIO, emit
 import json
-import requests
+import logging
 import os
-import time
 import random
+import sched
+import time
+
+import requests
+from flask import Flask, render_template, request
+from flask_socketio import SocketIO, emit
 
 from dashapp.event.generator import Generator
 from dashapp.event.reader import Reader
+from dashapp.event.referencer import Referencer
 from dashapp.event.tablebuilder import TableBuilder
 
-#TODO
-# make patient deceased event
+s = sched.scheduler(time.time)
+
+#TODO make patient deceased event
+#TODO first thing start react js tutorial and learn how to build
 
 events = []
 
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*")
+
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.ERROR)
 
 reader = Reader()
 token = reader.request_token()
@@ -57,32 +66,35 @@ def dashboard():
 @socketio.on('start_simulation')
 def start_simulation(data):
     print('Resource Type:', data['rtype'], '  Duration:', data['duration'])
-    
-    gen.set_duration_and_rtype(data['duration'], data['rtype'])
-    gen.generate_events()
-    gen.send_events()
-    verify_completion()
+    gen.set_duration_and_rtype(data['duration'], 'DiagnosticReport')
+    events = gen.generate_events()
+    send_events(events)
 
 @socketio.on('stop_simulation')
 def stop_simulation(data):
-    gen.stop_events()
+    list(map(s.cancel, s.queue))
+    gen.reset_variables()
+    print('Simulation stopped.')
 
-@socketio.on('update_duration')
-def update_duration(data):
+# start timer and send events to FHIR client
+def send_events(events):
+    url = '***REMOVED***/fhir_r4/'
+    emit('Sending Events', len(events))
+    start_time = time.time()
+    for i, event in enumerate(events):
+        s.enter(event['elapsed'], 1, send_single_event, argument=(event, url, start_time, i, len(events)))
+    s.run()
+    emit('Simulation End', True)
+
+# function for sending single event 
+def send_single_event(event, url, start_time, idx, num_of_events):
+    r = requests.post(url, json=event['resource'], headers={'Authorization': 'Bearer ' + token})
+    elapsed = time.time() - start_time
+    print(f'{idx+1}/{num_of_events}', event['elapsed'], elapsed, r.status_code)
+    emit('Post Bundle', (event['resource'], elapsed, r.status_code))
     
-    if data['duration'] == 0 or gen.get_duration() == 0: 
-        return ''
+    if r.status_code == 404 or r.status_code == 400 or r.status_code == 412:
+        print(r.json(), '\n\n')
     
-    if data['duration'] != gen.get_duration():
-        emit('Update Duration', data['duration'])
-        gen.tweak_duration(data['duration'])
-        verify_completion()
-
-def verify_completion():
-    if gen.get_is_completed():
-        gen.set_is_completed_false()
-        emit('Completion Status', True)
-
 if __name__ == '__main__':
     socketio.run(app)
-    

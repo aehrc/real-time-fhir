@@ -17,5 +17,10 @@
 }
 
 .simulation-span {
-  margin-top:10px;
+  margin-top:3px;
+}
+
+.status-box {
+  height: 30px;
+  width: 40px;
 }

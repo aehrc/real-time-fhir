@@ -11,15 +11,16 @@
 		<title>Dashboard</title>
 	</head>
 	
-	<body style="font-size: large;">
-		<h1 style="text-align:center; margin:30px;">Simulator</h1>
+	<body style="font-size: medium;">
+		<h1 style="text-align:center; margin:20px;">Simulator</h1>
 		
 		<div class="container-lg">
 			<!--Resource List Dropdown-->
-			<div class="form-group" style="margin-bottom:20px;">
+			<div class="form-group" style="margin-bottom:10px;">
 				<label for="select-rtype">Resource Type</label>
 				<select class="form-select" id='select-rtype'>
-					<option selected>None</option>
+					<option value="DiagnosticReport">DiagnosticReport</option>
+					<!-- <option selected>None</option>
 					<option value="AllergyIntolerance">AllergyIntolerance</option>
 					<option value="CarePlan">CarePlan</option>
 					<option value="Claim">Claim</option>
@@ -27,42 +28,50 @@
 					<option value="Immunization">Immunization</option>
 					<option value="MedicationAdministration">MedicationAdministration</option>
 					<option value="Observation">Observation</option>
-					<option value="Procedure">Procedure</option>
+					<option value="Procedure">Procedure</option> -->
 				</select>
 			</div>
 
 			<!--Duration Textbox-->
-			<div class="form-group" style="margin-bottom:20px;">
+			<div class="form-group" style="margin-bottom:10px;">
 				<label for="input-duration">Duration</label>
-				<input type="text" class="form-control" id="input-duration" aria-describedby="duration-help" placeholder="Enter Simulation Duration" required>
+				<input type="text" class="form-control" id="input-duration" aria-describedby="duration-help" placeholder="Enter Simulation Duration">
 				<small id="duration-help" class="form-text text-muted">Enter duration in seconds. E.g. 3600 for 1 hour.</small>
 			</div>
 
 			<!--Button-->
 			<button id="start-button" type="button" class="btn btn-primary" onclick=verifyForm()>Simulate Events</button>
-			<b><span id='simulation-status' style="margin:20px;"></span></b>
+			<span id='simulation-status' style="margin-left:15px;"></span>
 			<button id="stop-button" type="button" class="btn btn btn-danger" style="float:right" onclick=StopSimulation() disabled>Stop Simulation</button>
 
-			<!--Slider-->
-			<div style="margin-top:60px;">
-				<input type="range" min="0" max="1" value="0" step="10" class="form-range" id="slider-range" oninput="displaySliderVal(this.value, this.id)" disabled>
-				<small id='slider-min' class="text-muted" style="float:left; margin-top:-5px;">0</small>
-				<small id='slider-max' class="text-muted" style="float:right; margin-top:-5px;">100</small>
-
-				<div style="margin-top:35px;"><b><span>Resource Type: </span><span id="rtype-val">None</span></div></b>
-				<div class="simulation-span"><b>
-					<span>Time Elapsed: </span>
-					<span id="elapsed-h">00</span> :
-					<span id="elapsed-m">00</span> :
-					<span id="elapsed-s">00</span> :
-					<span id="elapsed-ms">00</span>
-				</b></div>
-				<div class="simulation-span"><b><span>Remaining Events: </span><span id="remaining-val">0</span></div></b>
-				<div class="simulation-span"><b><span>Slider: </span><span id="duration-val">0</span><span> seconds</span></div></b>
-				<small id="updated-duration" class="form-text text-muted"></small></br>
-				<small id="refresh-interval" class="form-text text-muted"></small>
-
+			<!--Simulation Attributes-->
+			<div class="text-muted" style="margin-top:10px;"><span>Resource Type: </span><span id="rtype-val">None</span></div>
+			<div class="simulation-span text-muted"><span>Duration: </span><span id="duration-val">None</span><span > seconds</span></div>
+			<div class="simulation-span text-muted">
+				<span>Events Recieved: </span>
+				<span id="recieved-events-val">0</span>
+				<span >/</span>
+				<span id="total-events-val">0</span>
 			</div>
+			<div class="simulation-span text-muted">
+				<span>Time Elapsed: </span>
+				<span id="elapsed-h">00</span> :
+				<span id="elapsed-m">00</span> :
+				<span id="elapsed-s">00</span> :
+				<span id="elapsed-ms">00</span>
+			</b></div>
+			<table class="table table-striped table-sm " id="event-table" style="margin-left:0px; font-size:16px;" >
+				<tbody>
+					<tr>
+						<th scope="col">Event no.</th>
+						<th scope="col">Resource</th>
+						<th scope="col">Ref. count</th>
+						<th scope="col">References</th>
+						<th scope="col">Elapsed timestamp</th>
+						<th scope="col">Status</th>
+					</tr>
+				</tbody>
+			</table>
 		</div>
 	</body>
 	
@@ -85,93 +94,80 @@
 		}
 
 		function startSimulation(resource_type, duration) {
-			startStopwatch()
-			send_slider = setInterval(SendSliderVal, 5000);
-			document.getElementById("simulation-status").innerHTML = 'Simulation started. Drag the slider to tweak duration by +50%';
-			
-			if (duration >= 180) {
-				var max = Math.ceil(duration*1.5/10) * 10;
-				var min = Math.floor(duration*0.5/10) * 10;
-				var step = 5;
-			}
-			else {
-				var max = Math.ceil(duration*1.5);
-				var min = Math.floor(duration*0.5);
-				var step = 1;
-			}
-
-			// set slider attributes
-			document.getElementById("slider-range").min = min;
-			document.getElementById("slider-range").max = max;
-			document.getElementById("slider-range").step = step;
-			document.getElementById("slider-range").value = duration;
-			document.getElementById("slider-range").disabled = false;
-			document.getElementById("slider-min").innerHTML = min;
-			document.getElementById("slider-max").innerHTML = max;
+			document.getElementById("simulation-status").innerHTML = 'Generating events...';
 			document.getElementById("start-button").disabled = true;
-			document.getElementById("stop-button").disabled = false;
-			document.getElementById("updated-duration").innerHTML = 'Current simulation duration: ' + duration + ' seconds'
-			document.getElementById("refresh-interval").innerHTML = 'Refresh interval: ' + interval/1000 + ' seconds'
-			
+			$("#event-table").find("tr:gt(0)").remove();
 			socket.emit('start_simulation', {'rtype': resource_type, 'duration':duration})
 		}
-	</script>
 
-	<!-- Display slider value -->
-	<script>
-		function displaySliderVal(val) {
-			document.getElementById("duration-val").innerHTML = val;
+		function StopSimulation() {
+			socket.emit('stop_simulation', true)
 		}
-	</script>
 
-	<!-- Stopwatch operations -->
-	<script>
-		
-	</script>
-
-	<!-- Reset Variables -->
-	<script>
 		function resetVariables() {
-			document.getElementById("slider-range").min = 0;
-			document.getElementById("slider-range").max = 100;
-			document.getElementById("slider-range").step = 10;
-			document.getElementById("slider-range").value = 0;
-			document.getElementById("slider-range").disabled = true;
-			document.getElementById("slider-min").innerHTML = 0;
-			document.getElementById("slider-max").innerHTML = 100;
+			resetStopwatch();
+			num_of_events = 0;
+			events_recieved = 0;
 			document.getElementById("start-button").disabled = false;
 			document.getElementById("stop-button").disabled = true;
 			document.getElementById("rtype-val").innerHTML = 'None';
 			document.getElementById("duration-val").innerHTML = '0';
-			document.getElementById("simulation-status").innerHTML = 'Simulation completed.'
-			document.getElementById("updated-duration").innerHTML = ''
-			document.getElementById("refresh-interval").innerHTML = ''
-			resetStopwatch();
-			clearInterval(send_slider);
+			document.getElementById("recieved-events-val").innerHTML = '0';
+			document.getElementById("total-events-val").innerHTML = '0';
 		}
 	</script>
+	
 	
 	<!-- Send slider value to Flask via socket -->
 	<script type="text/javascript">
 		var socket = io()
 
-		function StopSimulation() {
-			socket.emit('stop_simulation', true)
-			resetVariables();
-		}
-
-		function SendSliderVal() {
-			socket.emit('update_duration', {'duration': parseInt($('#slider-range').val())})
-		}
-
-		socket.on('Completion Status', function(data) {
-			if (data == true) {
-				resetVariables();
+		socket.on('Simulation End', function(data) {
+			if (num_of_events == events_recieved) {
+				document.getElementById("simulation-status").innerHTML = 'Simulation completed. '
 			}
+			else {
+				document.getElementById("simulation-status").innerHTML = 'Simulation ended early. '
+			}
+			document.getElementById("simulation-status").innerHTML += `${events_recieved}/${num_of_events} events recieved.`
+			resetVariables();
 		});
+		
+		var num_of_events = 0;
+		var events_recieved = 0;
 
-		socket.on('Update Duration', function(data) {
-			document.getElementById("updated-duration").innerHTML = ' Current simulation duration: ' + data + ' seconds'
+		socket.on('Post Bundle', function(bundle, elapsed, status_code) {
+			events_recieved++;
+			document.getElementById("recieved-events-val").innerHTML = events_recieved;
+			//TODO generate stop it
+			//COMPLETED/ENDED EARLY DIFFERENCE 
+			var table = document.getElementById("event-table");
+			var row = table.insertRow(1);
+			row.insertCell(0).innerHTML = `${events_recieved}/${num_of_events}`;
+			row.insertCell(1).innerHTML = bundle.entry[0].resource.resourceType + ' ' + bundle.entry[0].resource.id;
+			row.insertCell(2).innerHTML = bundle.entry.length-1;
+
+			var reference_col = row.insertCell(3);
+			for (var i = 1, len = bundle.entry.length; i < len; i++) {
+				reference_col.innerHTML += bundle.entry[i].resource.resourceType + ' ' + bundle.entry[i].resource.id + '</br>';
+			}
+			
+			row.insertCell(4).innerHTML = elapsed;
+			if (String(status_code).startsWith('2')) {
+				row.insertCell(5).innerHTML = `<button class="btn btn-sm btn-success status-box" disabled>${status_code}</button>`;
+			} 
+			else {
+				row.insertCell(5).innerHTML = `<button class="btn btn-sm btn-success status-box" style="background-color:#dc3545; border-color:#dc3545;" disabled>${status_code}</button>`;
+			}
+			
+		});
+		
+		socket.on('Sending Events', function(data) {
+			startStopwatch()
+			num_of_events = data
+			document.getElementById("stop-button").disabled = false;
+			document.getElementById("simulation-status").innerHTML = 'Simulation Started.';
+			document.getElementById("total-events-val").innerHTML = num_of_events;
 		});
 	</script>
 </html>
