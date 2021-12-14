@@ -55,6 +55,9 @@ class TableBuilder:
                 elif self.type == 'MedicationRequest':
                     col = [entry['resource']['authoredOn'] for entry in self.payload['entry']]
                 
+                if self.type == 'Procedure':
+                    col = [entry['resource']['performedPeriod']['start'] for entry in self.payload['entry']]
+
                 elif self.type == 'Provenance':
                     col = [entry['resource']['recorded'] for entry in self.payload['entry']]
                 

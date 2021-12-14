@@ -1,115 +1,35 @@
 import json
-from datetime import datetime, timedelta
-from pytz import timezone
-import threading
-import sched, time
-import requests
 import os
 
-s = sched.scheduler(time.time)
-
 # Generates and send events via POST to FHIR client
-class Generator:
-    def __init__(self, token):
-        self.duration = 0
-        self.resource_type = None
-        self.token = token
-    
-    def set_duration_and_rtype(self, duration, resource_type):
-        self.duration = duration
-        self.resource_type = resource_type
-        
-    def reset_variables(self):
-        self.duration = 0
-        self.resource_type = None
-    
-    # generate normalized and sorted (elapsed, FHIR resource) key-value pairs 
-    def generate_events(self):
-        # read resources and create event timestamps for each event
-        src_path = f'/home/yeexianfong/real-time-fhir/dashapp/input/{self.resource_type}.ndjson'
-        timestamps = load_json_timestamps(src_path, self.resource_type)
-        with open(src_path, 'r', encoding='latin-1',) as infile:
-            events = [{'resource': build_single_bundle(line), 
-                        'elapsed': datetime.fromisoformat(timestamps[i]).timestamp()} 
-                        for i, line in enumerate(infile)]
-        return normalize_elapsed(sorted(events, key=lambda d: d['elapsed']), self.duration)
-    
-### helper functions for generating events
-# normalize events by defined duration e.g. 300s
-def normalize_elapsed(events, duration):
-    range = events[-1]['elapsed'] - events[0]['elapsed']
-    if range == 0: 
-        range = 1
-    min = events[0]['elapsed']
+class Referencer:
+    def build_single_bundle(self, json_line):
+        # find references recusively within a resource
+        reference_list = []
+        for key, val in json.loads(json_line).items():
+            reference_list = search_reference_url(val, reference_list, key)
+         
+        # get categorized reference ids in a dict
+        ref_id_dict = categorize_references_ids(reference_list)
 
-    for event in events:
-        event['elapsed'] = (event['elapsed']-min)/range * duration
-    return events
-    
-def load_json_timestamps(source_path, rtype):
-    with open(source_path, 'r', encoding='latin-1',) as infile:
-        if rtype == 'AllergyIntolerance' or rtype == 'Condition':
-            return [json.loads(line)['recordedDate'] for line in infile]
+        # get references from their respective local files
+        references_json = []
+        for k, v in ref_id_dict.items():
+            if k == 'Organization' or k == 'Practitioner':
+                references_json.extend(get_references_json(ref_id_dict, k))
+            else:
+                references_json.extend(get_references_ndjson(ref_id_dict, k))
 
-        if rtype == 'CarePlan' or rtype == 'CareTeam' or rtype == 'Encounter':
-            return [json.loads(line)['period']['start'] for line in infile]
-
-        if rtype == 'Claim' or rtype == 'ExplanationOfBenefit':
-            return [json.loads(line)['created'] for line in infile]
-
-        if rtype == 'DiagnosticReport' or rtype == 'Observation' or rtype == 'MedicationAdministration':
-            return [json.loads(line)['effectiveDateTime'] for line in infile]
-        
-        if rtype == 'DocumentReference':
-            return [json.loads(line)['date'] for line in infile]
-        
-        if rtype == 'ExplanationOfBenefit':
-            return [json.loads(line)['created'] for line in infile]
-
-        if rtype == 'ImagingStudy':
-            return [json.loads(line)['started'] for line in infile]
-        
-        if rtype == 'Immunization' or rtype == 'SupplyDelivery':
-            return [json.loads(line)['occurrenceDateTime'] for line in infile]
-        
-        if rtype == 'MedicationRequest':
-            return [json.loads(line)['authoredOn'] for line in infile]
-        
-        if rtype == 'Procedure':
-            return [json.loads(line)['performedPeriod']['start'] for line in infile]
-
-        if rtype == 'Provenance':
-            return [json.loads(line)['recorded'] for line in infile]
-    return None
-
-### helper functions for compiling resources with their references in a FHIR Bundle
-def build_single_bundle(json_line):
-    # find references recusively within a resource
-    reference_list = []
-    for key, val in json.loads(json_line).items():
-        reference_list = search_reference_url(val, reference_list, key)
-        
-    # get categorized reference ids in a dict
-    ref_id_dict = categorize_references_ids(reference_list)
-
-    # get references from their respective local files
-    references_json = []
-    for k, v in ref_id_dict.items():
-        if k == 'Organization' or k == 'Practitioner':
-            references_json.extend(get_references_json(ref_id_dict, k))
-        else:
-            references_json.extend(get_references_ndjson(ref_id_dict, k))
-
-    # create FHIR bundle
-    #resources_json = [json.loads(json_line)].extend(references_json)
-    references_json.insert(0, json.loads(json_line))
-    bundle = {
-        'resourceType': 'Bundle',
-        'type': 'transaction',
-        'entry': []
-    }
-    bundle['entry'] = [build_entry(reference) for reference in references_json]
-    return bundle
+        # create FHIR bundle
+        #resources_json = [json.loads(json_line)].extend(references_json)
+        references_json.insert(0, json.loads(json_line))
+        bundle = {
+            'resourceType': 'Bundle',
+            'type': 'transaction',
+            'entry': []
+        }
+        bundle['entry'] = [build_entry(reference) for reference in references_json]
+        return bundle
 
 def search_reference_url(value, references, key=None):
     '''
