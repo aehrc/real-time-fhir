@@ -11,7 +11,6 @@ function Resource() {
   });
 
   useEffect(() => {
-    console.log(resourceType);
     fetch(`/resources/${resourceType}`)
       .then((res) => res.json())
       .then((data) => setTable(data))

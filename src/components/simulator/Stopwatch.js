@@ -10,9 +10,11 @@ function Stopwatch() {
   useEffect(() => {
     let interval;
     if (running) {
+      let startTime = new Date().getTime();
       interval = setInterval(() => {
-        setTime((prevTime) => prevTime + 10);
-      }, 10);
+        let elapsed = new Date().getTime() - startTime;
+        setTime(Math.ceil(elapsed / 10) * 10);
+      }, 33);
     } else if (!running) {
       clearInterval(interval);
     }

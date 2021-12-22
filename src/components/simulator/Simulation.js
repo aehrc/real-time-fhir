@@ -79,7 +79,12 @@ function Simulation() {
       });
 
       const tableRow = generateRow(idx, bundle, elapsed, status, attributesRef.current.totalEvents);
-      setTable([tableRow, ...tableRef.current]);
+      let tempTable = [tableRow, ...tableRef.current]
+      if (tempTable.length > 50) {
+        tempTable.pop()
+      }
+      setTable(tempTable);
+      console.log(tableRef.current.length)
     });
 
     socket.on("simulationEnd", (data) => {
