@@ -6,7 +6,6 @@ import Stopwatch from "./Stopwatch";
 import EventTable from "./EventTable";
 import { socket } from "../../App";
 
-
 // default values for attributes state
 const defaultAttributes = {
   resourceType: "Not Specified",
@@ -34,7 +33,6 @@ const statusReducer = (state, action) => {
     default:
       return state;
   }
-  //figure out how to add attributes state into reducer
 };
 
 function Simulation() {
@@ -79,11 +77,10 @@ function Simulation() {
 
       const tableRow = generateRow(idx, bundle, elapsed, status, attributesRef.current.totalEvents);
       let tempTable = [tableRow, ...tableRef.current];
-      if (tempTable.length > 50) {
+      if (tempTable.length > 100) {
         tempTable.pop();
       }
       setTable(tempTable);
-      console.log(tableRef.current.length);
     });
 
     socket.on("simulationEnd", (data) => {

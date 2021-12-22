@@ -3,7 +3,7 @@ import { socket } from "../../App";
 import "../componentStyles.css";
 
 function SimulationButton(props) {
-const {formState, attributesState, setAttributes, setTable, statusState, statusDispatch} = props
+  const { formState, attributesState, setAttributes, setTable, statusState, statusDispatch } = props;
 
   const startSimulation = () => {
     setTable([]);
@@ -23,7 +23,7 @@ const {formState, attributesState, setAttributes, setTable, statusState, statusD
   const stopSimulation = () => {
     statusDispatch("stopSimulation");
     socket.emit("stop_simulation", true);
-  }
+  };
 
   return (
     <React.Fragment>

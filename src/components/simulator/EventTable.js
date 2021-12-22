@@ -9,24 +9,22 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
   },
 }));
 const tableHeaders = ["Event no.", "Resource", "Ref. count", "References", "Elapsed timestamp", "Status"];
-function EventTable(props) {
-  return (
-    <div className="table-div">
-      <TableContainer component={Paper}>
-        <Table stickyHeader sx={{ minWidth: 650 }} size="small">
-          <TableHead>
-            <TableRow>
-              {tableHeaders.map((cell, index) => (
-                <TableCell key={index}>{cell}</TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
-          <TableBody>{props.tableBody.length ? outputTableBody(props.tableBody) : <React.Fragment/>}</TableBody>
-        </Table>
-      </TableContainer>
-    </div>
-  );
-}
+const EventTable = (props) => (
+  <div className="table-div">
+    <TableContainer component={Paper}>
+      <Table sx={{ minWidth: 650 }} size="small">
+        <TableHead>
+          <TableRow>
+            {tableHeaders.map((cell, index) => (
+              <TableCell key={index}>{cell}</TableCell>
+            ))}
+          </TableRow>
+        </TableHead>
+        <TableBody>{props.tableBody.length ? outputTableBody(props.tableBody) : <React.Fragment />}</TableBody>
+      </Table>
+    </TableContainer>
+  </div>
+);
 
 function outputTableBody(props) {
   const outRow = props.map((row, rowIndex) => (
@@ -35,9 +33,9 @@ function outputTableBody(props) {
       <TableCell>{`${row.resource.type} ${row.resource.id}`}</TableCell>
       <TableCell>{row.refCount}</TableCell>
       <TableCell>
-      {row.references.map((reference, refIndex) => (
-        <div key={refIndex}>{`${reference.type} ${reference.id}`}</div>
-      ))}
+        {row.references.map((reference, refIndex) => (
+          <div key={refIndex}>{`${reference.type} ${reference.id}`}</div>
+        ))}
       </TableCell>
       <TableCell>{row.timestamp}</TableCell>
       <TableCell>{row.status}</TableCell>
@@ -45,4 +43,5 @@ function outputTableBody(props) {
   ));
   return <React.Fragment>{outRow}</React.Fragment>;
 }
-export default EventTable;
+
+export default React.memo(EventTable);

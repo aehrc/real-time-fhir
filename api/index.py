@@ -62,10 +62,8 @@ def start_simulation(data):
 
 @socketio.on("stop_simulation")
 def stop_simulation(data):
-    print('just enter stop')
     list(map(s.cancel, s.queue))
     gen.reset_variables()
-    print('just exit stop')
 
 
 # start timer and send events to FHIR client
@@ -89,14 +87,20 @@ def send_events(events):
 def send_single_event(event, url, start_time, idx, num_of_events):
     try:
         r = requests.post(
-            url, json=event["resource"], headers={"Authorization": "Bearer " + token}, timeout=5
+            url,
+            json=event["resource"],
+            headers={"Authorization": "Bearer " + token},
+            timeout=5,
         )
     except:
         has_error = True
-        while (has_error):
-            print('An error occured, retrying...')
+        while has_error:
+            print("An error occured, retrying...")
             r = requests.post(
-                url, json=event["resource"], headers={"Authorization": "Bearer " + token}, timeout=5
+                url,
+                json=event["resource"],
+                headers={"Authorization": "Bearer " + token},
+                timeout=5,
             )
             has_error = False
 
