@@ -1,23 +1,32 @@
-import logo from './logo.svg';
-import './App.css';
+import "./App.css";
+import io from "socket.io-client";
+import NavBar from "./components/NavBar";
+import Simulation from "./components/simulator/Simulation";
+import Resource from "./components/resource/Resource";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+
+export const socket = io.connect('http://localhost:5000/');
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React now!
-        </a>
-      </header>
+    <div>
+      <NavBar></NavBar>
+      <div className="container-lg">
+        <BrowserRouter>
+          <Routes>
+            <Route path="/simulation" element={<Simulation />} />
+            <Route path="/resource" element={<Resource />} />
+            <Route
+              path="*"
+              element={
+                <div>
+                  <p>There's nothing here!</p>
+                </div>
+              }
+            />
+          </Routes>
+        </BrowserRouter>
+      </div>
     </div>
   );
 }

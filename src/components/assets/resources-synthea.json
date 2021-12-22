@@ -1,0 +1,20 @@
+{
+    "resources":  [
+        "AllergyIntolerance",
+        "CarePlan",
+        "CareTeam",
+        "Claim",
+        "Condition",
+        "DiagnosticReport",
+        "DocumentReference",
+        "Encounter",
+        "ExplanationOfBenefit",
+        "ImagingStudy",
+        "Immunization",
+        "MedicationAdministration",
+        "MedicationRequest",
+        "Observation",
+        "Procedure",
+        "Provenance"
+    ]
+}

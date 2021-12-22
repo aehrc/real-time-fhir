@@ -17,17 +17,12 @@ s = sched.scheduler(time.time)
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*")
 
-# log = logging.getLogger('werkzeug')
-# log.setLevel(logging.ERROR)
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.ERROR)
 
 reader = Reader()
 token = reader.request_token()
 gen = Generator(token)
-
-
-@app.route('/')
-def time():
-    return 'hello'
 
 @app.route('/resources/<resource_type>')
 def find_resource(resource_type=None):

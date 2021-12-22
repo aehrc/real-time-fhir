@@ -1,0 +1,61 @@
+.header {
+  margin-bottom: 40px;
+}
+
+.title {
+  margin: 20px;
+  text-align: center;
+}
+
+.btn {
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+.form-group {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.float-right {
+  float: right;
+}
+
+.bold {
+  font-weight: bold;
+}
+
+.simulation-attributes {
+  margin-top: 15px;
+  margin-bottom: 15px;
+}
+
+.simulation-span {
+  margin-top: 3px;
+}
+
+.card-body {
+  text-align: center;
+  text-decoration: none;
+}
+
+.card-body {
+  text-align: center;
+  text-decoration: none;
+}
+.card-body:hover {
+  background-color: #c0c0c0;
+  color: #000000;
+}
+
+.fhir-logo {
+  height: 25px;
+  width: 25px;
+  margin: 5px;
+  margin-bottom: 10px;
+}
+
+.table-div {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
