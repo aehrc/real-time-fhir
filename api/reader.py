@@ -27,7 +27,6 @@ class Reader:
             token = jwt["access_token"]
 
             # write new token to file
-            # with open('./dashapp/event/token.json', 'w') as outfile:
             with open("./token.json", "w") as outfile:
                 print("Authentication token renewed.")
                 json.dump(jwt, outfile)

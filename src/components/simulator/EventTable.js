@@ -1,5 +1,4 @@
 import React, { useContext } from "react";
-import { TableContext } from "./Simulation";
 import { Table, TableBody, TableContainer, TableHead, TableRow, TableCell, Paper } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import "../componentStyles.css";
@@ -10,8 +9,7 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
   },
 }));
 const tableHeaders = ["Event no.", "Resource", "Ref. count", "References", "Elapsed timestamp", "Status"];
-function EventTable() {
-  const { tableBody } = useContext(TableContext);
+function EventTable(props) {
   return (
     <div className="table-div">
       <TableContainer component={Paper}>
@@ -23,7 +21,7 @@ function EventTable() {
               ))}
             </TableRow>
           </TableHead>
-          <TableBody>{tableBody.length ? outputTableBody(tableBody) : <React.Fragment/>}</TableBody>
+          <TableBody>{props.tableBody.length ? outputTableBody(props.tableBody) : <React.Fragment/>}</TableBody>
         </Table>
       </TableContainer>
     </div>

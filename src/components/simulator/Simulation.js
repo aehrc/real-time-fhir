@@ -1,29 +1,19 @@
 import React, { useState, useEffect, useRef, useReducer } from "react";
-import SimulationForm from "./SimulationForm";
-import SimulationAttributes from "./SimulationAttributes";
+import SimulationForm from "./SimForm";
+import SimulationButtons from "./SimButtons";
+import SimulationAttributes from "./SimAttributes";
+import Stopwatch from "./Stopwatch";
 import EventTable from "./EventTable";
 import { socket } from "../../App";
 
-export const AttributesContext = React.createContext();
-export const TableContext = React.createContext();
-export const StatusContext = React.createContext();
 
 // default values for attributes state
 const defaultAttributes = {
   resourceType: "Not Specified",
   duration: "0",
-  //simulationStatus: "Not running",
   totalEvents: "0",
   eventsReceived: "0",
-  timeElapsed: "0.0",
   finalEventCount: "",
-};
-
-// default values for status state
-const defaultStatus = {
-  startBtn: true,
-  stopBtn: false,
-  statusMsg: "Not running",
 };
 
 // default values for status state
@@ -48,6 +38,12 @@ const statusReducer = (state, action) => {
 };
 
 function Simulation() {
+  // Simulation form state
+  const [form, setForm] = useState({
+    resourceType: "DiagnosticReport",
+    duration: 60,
+  });
+
   // Simulation attributes state
   const [attributes, setAttributes] = useState(defaultAttributes);
   const attributesRef = useRef(defaultAttributes);
@@ -59,7 +55,11 @@ function Simulation() {
   tableRef.current = table;
 
   // Simulation Status reducer
-  const [status, statusDispatch] = useReducer(statusReducer, defaultStatus);
+  const [status, statusDispatch] = useReducer(statusReducer, {
+    startBtn: true,
+    stopBtn: false,
+    statusMsg: "Not running",
+  });
 
   //Send context/Use state from child to parent - en jp language
   useEffect(() => {
@@ -67,7 +67,6 @@ function Simulation() {
       setAttributes({
         ...attributesRef.current,
         totalEvents: data,
-        //simulationStatus: "Simulation Running...",
       });
       statusDispatch("sendEvents");
     });
@@ -79,12 +78,12 @@ function Simulation() {
       });
 
       const tableRow = generateRow(idx, bundle, elapsed, status, attributesRef.current.totalEvents);
-      let tempTable = [tableRow, ...tableRef.current]
+      let tempTable = [tableRow, ...tableRef.current];
       if (tempTable.length > 50) {
-        tempTable.pop()
+        tempTable.pop();
       }
       setTable(tempTable);
-      console.log(tableRef.current.length)
+      console.log(tableRef.current.length);
     });
 
     socket.on("simulationEnd", (data) => {
@@ -105,20 +104,24 @@ function Simulation() {
   return (
     <div>
       <p className="h1 title">Simulator</p>
-      <AttributesContext.Provider value={{ attributesState: attributes, setAttributes: setAttributes }}>
-        <TableContext.Provider value={{ tableBody: table, setTable: setTable }}>
-          <StatusContext.Provider value={{ statusState: status, statusDispatch: statusDispatch }}>
-            <SimulationForm />
-            <SimulationAttributes />
-            <EventTable />
-          </StatusContext.Provider>
-        </TableContext.Provider>
-      </AttributesContext.Provider>
+      <SimulationForm form={form} setForm={setForm} />
+      <SimulationButtons
+        formState={form}
+        attributesState={attributes}
+        setAttributes={setAttributes}
+        setTable={setTable}
+        statusState={status}
+        statusDispatch={statusDispatch}
+      />
+
+      <SimulationAttributes attributes={attributes} status={status} />
+      <Stopwatch status={status} />
+      <EventTable tableBody={table} />
     </div>
   );
 }
 
-function generateRow(idx, bundle, elapsed, status, total_events) {
+const generateRow = (idx, bundle, elapsed, status, total_events) => {
   const row = {
     eventNo: `${idx}/${total_events}`,
     resource: {
@@ -138,6 +141,6 @@ function generateRow(idx, bundle, elapsed, status, total_events) {
     });
   }
   return row;
-}
+};
 
 export default Simulation;

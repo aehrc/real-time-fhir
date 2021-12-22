@@ -62,8 +62,10 @@ def start_simulation(data):
 
 @socketio.on("stop_simulation")
 def stop_simulation(data):
+    print('just enter stop')
     list(map(s.cancel, s.queue))
     gen.reset_variables()
+    print('just exit stop')
 
 
 # start timer and send events to FHIR client

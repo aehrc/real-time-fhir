@@ -1,11 +1,9 @@
-import React, { useState, useEffect, useContext } from "react";
-import { StatusContext } from "./Simulation";
+import React, { useState, useEffect} from "react";
+import "../componentStyles.css";
 
-function Stopwatch() {
+function Stopwatch(props) {
   const [time, setTime] = useState(0);
   const [running, setRunning] = useState(false);
-
-  const { statusState } = useContext(StatusContext);
 
   useEffect(() => {
     let interval;
@@ -22,7 +20,7 @@ function Stopwatch() {
   }, [running]);
 
   useEffect(() => {
-    const status = statusState.statusMsg;
+    const status = props.status.statusMsg;
     switch (status) {
       case "Sending events":
         return setRunning(true);
@@ -34,14 +32,16 @@ function Stopwatch() {
       default:
         return;
     }
-  }, [statusState]);
+  }, [props.status]);
 
   return (
+    <div className="simulation-span">Time Elapsed:  
     <span>
-      <span>{("0" + Math.floor((time / 60000) % 60)).slice(-2)}:</span>
+      <span> {("0" + Math.floor((time / 60000) % 60)).slice(-2)}:</span>
       <span>{("0" + Math.floor((time / 1000) % 60)).slice(-2)}:</span>
       <span>{("0" + ((time / 10) % 100)).slice(-2)}</span>
     </span>
+    </div>
   );
 }
 
