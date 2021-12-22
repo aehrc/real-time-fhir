@@ -12,7 +12,7 @@ function Resource() {
 
   useEffect(() => {
     console.log(resourceType);
-    fetch(`http://localhost:5000/resources/${resourceType}`)
+    fetch(`/resources/${resourceType}`)
       .then((res) => res.json())
       .then((data) => setTable(data))
       .catch((error) => setTable({ ...table, errorMsg: error.toString() }));

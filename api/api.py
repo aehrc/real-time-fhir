@@ -1,7 +1,4 @@
-import json
 import logging
-import os
-import random
 import sched
 import time
 import requests
@@ -23,6 +20,10 @@ log.setLevel(logging.ERROR)
 reader = Reader()
 token = reader.request_token()
 gen = Generator(token)
+
+@app.route('/')
+def is_alive():
+    return 'Hello World'
 
 @app.route('/resources/<resource_type>')
 def find_resource(resource_type=None):

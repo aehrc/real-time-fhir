@@ -14,6 +14,7 @@ function App() {
       <div className="container-lg">
         <BrowserRouter>
           <Routes>
+            <Route path="/" element={<Resource />} />
             <Route path="/simulation" element={<Simulation />} />
             <Route path="/resource" element={<Resource />} />
             <Route
