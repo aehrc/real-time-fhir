@@ -103,9 +103,9 @@ function Simulation() {
       <AttributesContext.Provider value={{ attributesState: attributes, setAttributes: setAttributes }}>
         <TableContext.Provider value={{ tableBody: table, setTable: setTable }}>
           <StatusContext.Provider value={{ statusState: status, statusDispatch: statusDispatch }}>
-            <SimulationForm/>
-            <SimulationAttributes/>
-            <EventTable/>
+            <SimulationForm />
+            <SimulationAttributes />
+            <EventTable />
           </StatusContext.Provider>
         </TableContext.Provider>
       </AttributesContext.Provider>

@@ -5,7 +5,7 @@ import Simulation from "./components/simulator/Simulation";
 import Resource from "./components/resource/Resource";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-export const socket = io.connect('http://localhost:5000/');
+export const socket = io.connect("http://localhost:5000/");
 
 function App() {
   return (
