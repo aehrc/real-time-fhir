@@ -4,6 +4,7 @@ import time
 import requests
 from flask import Flask, request
 from flask_socketio import SocketIO, emit
+from requests.models import Response
 
 from api.generator import Generator
 from api.reader import Reader
@@ -54,6 +55,7 @@ def find_resource(resource_type=None):
 
 @socketio.on("start_simulation")
 def start_simulation(data):
+    list(map(s.cancel, s.queue))
     print("Resource Type:", data["rtype"], "  Duration:", data["duration"])
     gen.set_rtype_and_duration(data["rtype"], data["duration"])
     events = gen.generate_events()
@@ -110,7 +112,6 @@ def send_single_event(event, url, start_time, idx, num_of_events):
 
     if r.status_code == 404 or r.status_code == 400 or r.status_code == 412:
         print(r.json(), "\n\n")
-
 
 if __name__ == "__main__":
     socketio.run(app)
