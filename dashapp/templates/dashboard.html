@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<!--Import JQuery-->
+		<script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+		<meta charset="utf-8">
+		<title>Dashboard</title>
+	</head>
+	
+	<body style="margin-left:100px;" onload="update_values();">
+		<h1 style="text-align:center">Dashboard</h1>
+		<h3>Total Events: <text id='count'>0</text></h3>
+
+		<h3>Resource Types Count: </h3><ul id="count_list"></ul>
+		<!-- <canvas id="myChart" width="400" height="400"></canvas> -->
+		<h3>Total Events: </h3><ol id="event_list"></ol>
+		
+	</body>
+	
+
+	<!-- Get event from Flask -->
+	<script>
+		document.getElementById('count').innerHTML;
+		
+		var count = 0;
+		var resourceObj = {};
+		
+		var intervalID = setInterval(update_values, 1000);
+
+		// add event to event list
+		function add_event(rtype, id, timestamp) {
+			var resource_type = "Resource type: " + rtype + "<br/>"
+			var id = "ID: " + id + "<br/>"
+			var timestamp = "Timestamp: " + timestamp + "<br/>"
+
+			var event_list = document.getElementById("event_list");
+			event_list.innerHTML += "<li>" + resource_type + id + timestamp + "</li><br/>";
+		}
+
+		// check and get event from flask queue
+		function update_values() {
+            $SCRIPT_ROOT = {{ (request.script_root|tojson) }};
+			$.getJSON($SCRIPT_ROOT + '/update_dash', function(data) {
+				if (data.resource !== null) {
+
+					count++;
+					console.log(data.resource);
+					
+					resource_type = data.resource.resourceType
+					if (resourceObj.hasOwnProperty(resource_type)) {
+						resourceObj[resource_type]++;
+					} else {
+						resourceObj[resource_type] = 1;
+					}
+					
+					var count_str = "";
+					for (const resource in resourceObj) {
+						count_str += "<li>" + resource + ": " + resourceObj[resource] + "</li>";
+					}
+					document.getElementById("count_list").innerHTML = count_str;
+					add_event(resource_type, data.resource.id, data.resource.effectiveDateTime)
+				} else {
+					console.log('no resource');
+				}
+	
+				$('#count').text(count);
+			});
+		}
+	</script>
+</html>
+	
+	

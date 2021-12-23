@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<!--Import Bootstrap-->
+		<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
+		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW" crossorigin="anonymous"></script>
+		<!--Import JQuery-->
+		<script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+		<!--Import SocketIO-->
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.1.1/socket.io.js"></script>
+		<meta charset="utf-8">
+		<title>Responsive Slider</title>
+	</head>
+  
+	<body>
+		<h1 style="text-align:center">Responsive Slider</h1>
+
+		<div style="margin:100px">
+			<input type="range" min="60" max="900" value="0" class="form-range" id="myRange1" name="myRange1" oninput="display(this.value, this.id)">
+			<span>Value: </span>
+			<span id="display1">0</span>
+		</div>
+		
+		<script>
+			function display(val, id) {
+				var str = id;
+				var c = str.charAt(str.length - 1)
+				var val_id = "display" + c
+				document.getElementById(val_id).innerHTML = val;
+			}
+		</script>
+		
+		<script type="text/javascript">
+			var socket = io()
+
+			function send() {
+				socket.emit('update',
+				{'value':$('#myRange1').val()})
+			}
+
+			sending = setInterval(send, 5000);
+		</script>
+	</body>
+</html>
+	
+	

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+	  <head>
+        <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+        <link rel='stylesheet' href="{{url_for('static', filename='style.css')}}"/>
+        <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Resource</title>
+	  </head>
+    
+    <body>
+        <div style="text-align:center">
+            <h1>{{title}}</h1><p>{{url}}</p>
+        </div>
+
+        <div><p>{{error}}</p></div>
+
+
+        <table class="table" style="margin-left:auto; margin-right:auto">
+            <tr class="table__header">
+                {% for header in headers %}
+                <th class="table__cell">{{ header }}</th>
+                {% endfor %}
+            </tr>
+            {% for row in data %}
+            <tr class="table__row">
+                {% for cell in row %}
+                <td class="table__cell">{{ cell }}</td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </table>
+	</body>
+</html>
