@@ -59,7 +59,6 @@ function Simulation() {
     statusMsg: "Not running",
   });
 
-  //Send context/Use state from child to parent - en jp language
   useEffect(() => {
     socket.on("sendEvents", (data) => {
       setAttributes({
