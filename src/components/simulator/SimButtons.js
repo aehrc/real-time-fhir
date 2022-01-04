@@ -1,4 +1,6 @@
 import React from "react";
+import { Grid, Button } from "@mui/material";
+import { PlayArrow, Stop } from "@mui/icons-material";
 import { socket } from "../../App";
 import "../componentStyles.css";
 
@@ -26,19 +28,30 @@ function SimulationButton(props) {
   };
 
   return (
-    <React.Fragment>
-      <button type="button" className="btn btn-success" onClick={startSimulation} disabled={!statusState.startBtn}>
-        Start Simulation
-      </button>
-      <button
-        type="button"
-        className="btn btn-danger float-right"
-        onClick={stopSimulation}
-        disabled={!statusState.stopBtn}
-      >
-        Stop Simulation
-      </button>
-    </React.Fragment>
+    <Grid container spacing={2}>
+      <Grid item xs={6}>
+        <Button
+          variant="contained"
+          sx={{ m: 1 }}
+          startIcon={<PlayArrow />}
+          onClick={startSimulation}
+          disabled={!statusState.startBtn}
+        >
+          Start Simulation
+        </Button>
+      </Grid>
+      <Grid item xs={6} container justifyContent="flex-end">
+        <Button
+          variant="contained"
+          sx={{ m: 1 }}
+          startIcon={<Stop />}
+          onClick={stopSimulation}
+          disabled={!statusState.stopBtn}
+        >
+          Stop Simulation
+        </Button>
+      </Grid>
+    </Grid>
   );
 }
 

@@ -4,6 +4,7 @@ import SimulationButtons from "./SimButtons";
 import SimulationAttributes from "./SimAttributes";
 import Stopwatch from "./Stopwatch";
 import EventTable from "./EventTable";
+import { Grid, Card, CardContent, CardActions } from "@mui/material";
 import { socket } from "../../App";
 
 // default values for attributes state
@@ -99,16 +100,25 @@ function Simulation() {
 
   return (
     <div>
-      <p className="h1 title">Simulator</p>
-      <SimulationForm form={form} setForm={setForm} />
-      <SimulationButtons
-        formState={form}
-        attributesState={attributes}
-        setAttributes={setAttributes}
-        setTable={setTable}
-        statusState={status}
-        statusDispatch={statusDispatch}
-      />
+      <Grid container justifyContent="center" alignItems="center" spacing={2}>
+        <Grid item xs={12}>
+          <Card sx={{ m: 5 }}>
+            <CardContent>
+              <SimulationForm form={form} setForm={setForm} />
+            </CardContent>
+            <CardActions>
+              <SimulationButtons
+                formState={form}
+                attributesState={attributes}
+                setAttributes={setAttributes}
+                setTable={setTable}
+                statusState={status}
+                statusDispatch={statusDispatch}
+              />
+            </CardActions>
+          </Card>
+        </Grid>
+      </Grid>
 
       <SimulationAttributes attributes={attributes} status={status} />
       <Stopwatch status={status} />

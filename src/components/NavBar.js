@@ -1,24 +1,30 @@
 import React from "react";
-import { Navbar, Container, Nav } from "react-bootstrap";
-import { Outlet } from "react-router-dom";
-import logo from './assets/fhir-logo.png'
+import { AppBar, Box, Button, Container, Link, Toolbar, Typography } from "@mui/material";
+import "./NavBar.styles.css";
 
-function NavBar() {
+const pages = ["Simulator", "Resources"];
+
+const NavBar = () => {
   return (
-    <Navbar bg="dark" variant="dark">
-      <Container>
-        <Navbar.Brand href="/" className="nav-brand"><img src={logo} alt="" className='fhir-logo' />Real-Time-FHIR</Navbar.Brand>
-        <Navbar.Toggle aria-controls="basic-navbar-nav" />
-        <Navbar.Collapse id="basic-navbar-nav">
-          <Nav className="me-auto">
-            <Nav.Link href="/simulation">Simulator</Nav.Link>
-            <Nav.Link href="/resource">Resource</Nav.Link>
-          </Nav>
-          <Outlet />
-        </Navbar.Collapse>
-      </Container>
-    </Navbar>
-  );
-}
+    <AppBar position="static">
+      <Container maxWidth="lg">
+        <Toolbar disableGutters>
+          <Typography variant="h6" noWrap component="div" sx={{ mr: 2.5 }}>
+            <Link className="nav-title" href="/simulator" sx={{ textDecoration: "none" }} style={{ color: 'white' }}>
+              Real-Time-FHIR
+            </Link>
+          </Typography>
 
+          <Box sx={{ flexGrow: 1 }}>
+            {pages.map((page) => (
+              <Link href={page.toLowerCase()} underline="none" key={page}>
+                <Button sx={{ color: "white" }}>{page}</Button>
+              </Link>
+            ))}
+          </Box>
+        </Toolbar>
+      </Container>
+    </AppBar>
+  );
+};
 export default NavBar;
