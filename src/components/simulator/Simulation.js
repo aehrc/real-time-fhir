@@ -102,7 +102,7 @@ function Simulation() {
     <div>
       <Grid container justifyContent="center" alignItems="center" spacing={2}>
         <Grid item xs={12}>
-          <Card sx={{ m: 5 }}>
+          <Card sx={{ my: 3 }}>
             <CardContent>
               <SimulationForm form={form} setForm={setForm} />
             </CardContent>

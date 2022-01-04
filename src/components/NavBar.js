@@ -5,26 +5,37 @@ import "./NavBar.styles.css";
 const pages = ["Simulator", "Resources"];
 
 const NavBar = () => {
+  const currentPath = window.location.pathname.substring(1);
   return (
     <AppBar position="static">
       <Container maxWidth="lg">
         <Toolbar disableGutters>
           <Typography variant="h6" noWrap component="div" sx={{ mr: 2.5 }}>
-            <Link className="nav-title" href="/simulator" sx={{ textDecoration: "none" }} style={{ color: 'white' }}>
+            <Link className="nav-title" href="/simulator" sx={{ textDecoration: "none" }} style={{ color: "white" }}>
               Real-Time-FHIR
             </Link>
           </Typography>
 
           <Box sx={{ flexGrow: 1 }}>
-            {pages.map((page) => (
-              <Link href={page.toLowerCase()} underline="none" key={page}>
-                <Button sx={{ color: "white" }}>{page}</Button>
-              </Link>
-            ))}
+            {pages.map((pageName) => {
+              const page = pageName.toLowerCase();
+              return currentPath === page ? (
+                <NavButton key={page} page={page} color={"rgb(86,179,196)"} />
+              ) : (
+                <NavButton key={page} page={page} color={"white"} />
+              );
+            })}
           </Box>
         </Toolbar>
       </Container>
     </AppBar>
   );
 };
+
+const NavButton = (props) => (
+  <Link href={props.page.toLowerCase()} underline="none">
+    <Button sx={{ color: props.color }}>{props.page}</Button>
+  </Link>
+);
+
 export default NavBar;
