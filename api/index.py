@@ -4,7 +4,7 @@ import time
 import requests
 from flask import Flask, request
 from flask_socketio import SocketIO, emit
-from requests.models import Response
+from datetime import datetime
 
 from api.generator import Generator
 from api.reader import Reader
@@ -21,6 +21,10 @@ log.setLevel(logging.ERROR)
 reader = Reader()
 token = reader.request_token()
 gen = Generator(token)
+
+# multipleir
+# add tiestamp
+# change processing to when send event and not before sending
 
 
 @app.route("/resources/<resource_type>")
@@ -71,7 +75,7 @@ def stop_simulation(data):
 # start timer and send events to FHIR client
 def send_events(events):
     url = "***REMOVED***/fhir_r4/"
-    emit("sendEvents", len(events))
+    emit("sendEvents", (len(events), calcTimelineDuration(events)))
     start_time = time.time()
     for i, event in enumerate(events):
         s.enter(
@@ -108,10 +112,20 @@ def send_single_event(event, url, start_time, idx, num_of_events):
 
     elapsed = time.time() - start_time
     print(f"{idx+1}/{num_of_events}", event["elapsed"], elapsed, r.status_code)
-    emit("postBundle", (idx + 1, event["resource"], elapsed, r.status_code))
+    emit(
+        "postBundle",
+        (idx + 1, event["resource"], event["timestamp"], elapsed, r.status_code),
+    )
 
     if r.status_code == 404 or r.status_code == 400 or r.status_code == 412:
         print(r.json(), "\n\n")
+
+
+def calcTimelineDuration(events):
+    last_timestamp = datetime.fromisoformat(events[-1]["timestamp"])
+    first_timestamp = datetime.fromisoformat(events[0]["timestamp"])
+    return abs((last_timestamp - first_timestamp).total_seconds())
+
 
 if __name__ == "__main__":
     socketio.run(app)

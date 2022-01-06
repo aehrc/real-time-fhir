@@ -8,7 +8,7 @@ const NavBar = () => {
   const currentPath = window.location.pathname.substring(1);
   return (
     <AppBar position="static">
-      <Container maxWidth="lg">
+      <Container maxWidth="xl">
         <Toolbar disableGutters>
           <Typography variant="h6" noWrap component="div" sx={{ mr: 2.5 }}>
             <Link className="nav-title" href="/simulator" sx={{ textDecoration: "none" }} style={{ color: "white" }}>

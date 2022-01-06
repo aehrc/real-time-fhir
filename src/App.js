@@ -15,7 +15,7 @@ function App(props) {
   return (
     <ThemeProvider mode={colorMode}>
       <NavBar></NavBar>
-      <Container maxWidth="lg">
+      <Container maxWidth="xl">
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Simulation />} />

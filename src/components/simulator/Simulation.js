@@ -14,23 +14,25 @@ const defaultAttributes = {
   totalEvents: "0",
   eventsReceived: "0",
   finalEventCount: "",
+  timelineDuration: "0",
+  durationMultiplier: "0"
 };
 
 // default values for status state
 const statusReducer = (state, action) => {
   switch (action) {
     case "notRunning":
-      return { startBtn: true, stopBtn: false, statusMsg: "Not running" };
+      return { statusCode: action, statusMsg: "Not running", startBtn: true, stopBtn: false };
     case "startSimulation":
-      return { startBtn: false, stopBtn: false, statusMsg: "Generating events" };
+      return { statusCode: action, statusMsg: "Generating events", startBtn: false, stopBtn: false };
     case "sendEvents":
-      return { startBtn: false, stopBtn: true, statusMsg: "Sending events" };
+      return { statusCode: action, statusMsg: "Sending events", startBtn: false, stopBtn: true };
     case "stopSimulation":
-      return { startBtn: false, stopBtn: false, statusMsg: "Stopping simulation" };
+      return { statusCode: action, statusMsg: "Stopping", startBtn: false, stopBtn: false };
     case "simulationStopped":
-      return { startBtn: true, stopBtn: false, statusMsg: "Simulation ended early" };
+      return { statusCode: action, statusMsg: "Ended early", startBtn: true, stopBtn: false };
     case "simulationComplete":
-      return { startBtn: true, stopBtn: false, statusMsg: "Simulation completed" };
+      return { statusCode: action, statusMsg: "Completed", startBtn: true, stopBtn: false };
     default:
       return state;
   }
@@ -55,29 +57,32 @@ function Simulation() {
 
   // Simulation Status reducer
   const [status, statusDispatch] = useReducer(statusReducer, {
+    statusCode: "notRunning",
+    statusMsg: "Not running",
     startBtn: true,
     stopBtn: false,
-    statusMsg: "Not running",
   });
 
   useEffect(() => {
-    socket.on("sendEvents", (data) => {
+    socket.on("sendEvents", (numOfEvents, timelineDuration) => {
       setAttributes({
         ...attributesRef.current,
-        totalEvents: data,
+        totalEvents: numOfEvents,
+        timelineDuration: timelineDuration,
+        durationMultiplier: `${timelineDuration/attributesRef.current.duration}`
       });
       statusDispatch("sendEvents");
     });
 
-    socket.on("postBundle", (idx, bundle, elapsed, status) => {
+    socket.on("postBundle", (idx, bundle, timestamp, elapsed, status) => {
       setAttributes({
         ...attributesRef.current,
         eventsReceived: idx,
       });
 
-      const tableRow = generateRow(idx, bundle, elapsed, status, attributesRef.current.totalEvents);
+      const tableRow = generateRow(idx, bundle, timestamp, elapsed, status, attributesRef.current.totalEvents);
       let tempTable = [tableRow, ...tableRef.current];
-      if (tempTable.length > 100) {
+      if (tempTable.length > 50) {
         tempTable.pop();
       }
       setTable(tempTable);
@@ -102,7 +107,7 @@ function Simulation() {
     <div>
       <Grid container justifyContent="center" alignItems="center" spacing={2}>
         <Grid item xs={12}>
-          <Card sx={{ my: 3 }}>
+          <Card sx={{ my: 2 }}>
             <CardContent>
               <SimulationForm form={form} setForm={setForm} />
             </CardContent>
@@ -120,14 +125,21 @@ function Simulation() {
         </Grid>
       </Grid>
 
-      <SimulationAttributes attributes={attributes} status={status} />
-      <Stopwatch status={status} />
+      <Grid container spacing={3}>
+        <Grid item xs={9}>
+          <SimulationAttributes attributes={attributes} status={status} />
+        </Grid>
+        <Grid item xs={3}>
+          <Stopwatch status={status} />
+        </Grid>
+      </Grid>
       <EventTable tableBody={table} />
+
     </div>
   );
 }
 
-const generateRow = (idx, bundle, elapsed, status, total_events) => {
+const generateRow = (idx, bundle, timestamp, elapsed, status, total_events) => {
   const row = {
     eventNo: `${idx}/${total_events}`,
     resource: {
@@ -136,7 +148,8 @@ const generateRow = (idx, bundle, elapsed, status, total_events) => {
     },
     refCount: bundle.entry.length - 1,
     references: [],
-    timestamp: elapsed,
+    timestamp: timestamp,
+    elapsed: elapsed,
     status: status,
   };
 

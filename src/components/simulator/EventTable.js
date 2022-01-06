@@ -1,5 +1,5 @@
-import React, { useContext } from "react";
-import { Table, TableBody, TableContainer, TableHead, TableRow, TableCell, Paper } from "@mui/material";
+import React from "react";
+import { Grid, Table, TableBody, TableContainer, TableHead, TableRow, TableCell, Paper } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import "../componentStyles.css";
 
@@ -8,22 +8,21 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
     backgroundColor: theme.palette.action.hover,
   },
 }));
-const tableHeaders = ["Event no.", "Resource", "Ref. count", "References", "Elapsed timestamp", "Status"];
+
+const tableHeaders = ["No.", "Resource", "Refs.", "References", "Timestamp", "Elapsed", "Status"];
 const EventTable = (props) => (
-  <div className="table-div">
-    <TableContainer component={Paper}>
-      <Table sx={{ minWidth: 650 }} size="small">
-        <TableHead>
-          <TableRow>
-            {tableHeaders.map((cell, index) => (
-              <TableCell key={index}>{cell}</TableCell>
-            ))}
-          </TableRow>
-        </TableHead>
-        <TableBody>{props.tableBody.length ? outputTableBody(props.tableBody) : <React.Fragment />}</TableBody>
-      </Table>
-    </TableContainer>
-  </div>
+      <TableContainer component={Paper} sx={{ my: 2 }}>
+        <Table sx={{ minWidth: 650 }}>
+          <TableHead>
+            <TableRow>
+              {tableHeaders.map((cell, index) => (
+                <TableCell key={index}>{cell}</TableCell>
+              ))}
+            </TableRow>
+          </TableHead>
+          <TableBody>{props.tableBody.length ? outputTableBody(props.tableBody) : <React.Fragment />}</TableBody>
+        </Table>
+      </TableContainer>
 );
 
 function outputTableBody(props) {
@@ -38,6 +37,7 @@ function outputTableBody(props) {
         ))}
       </TableCell>
       <TableCell>{row.timestamp}</TableCell>
+      <TableCell>{row.elapsed.toFixed(4)}</TableCell>
       <TableCell>{row.status}</TableCell>
     </StyledTableRow>
   ));

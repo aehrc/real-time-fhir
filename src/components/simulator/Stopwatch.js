@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Paper, Card, CardContent, Typography } from "@mui/material";
 import "../componentStyles.css";
 
 function Stopwatch(props) {
@@ -20,12 +21,12 @@ function Stopwatch(props) {
   }, [running]);
 
   useEffect(() => {
-    const status = props.status.statusMsg;
+    const status = props.status.statusCode;
     switch (status) {
-      case "Sending events":
+      case "sendEvents":
         return setRunning(true);
-      case "Stopping simulation":
-      case "Simulation completed":
+      case "stopSimulation":
+      case "simulationComplete":
         setTime(0);
         setRunning(false);
         return;
@@ -35,14 +36,15 @@ function Stopwatch(props) {
   }, [props.status]);
 
   return (
-    <div className="simulation-span">
-      Time Elapsed:
-      <span>
-        <span> {("0" + Math.floor((time / 60000) % 60)).slice(-2)}:</span>
-        <span>{("0" + Math.floor((time / 1000) % 60)).slice(-2)}:</span>
-        <span>{("0" + ((time / 10) % 100)).slice(-2)}</span>
-      </span>
-    </div>
+    <Card style={{ height: "100%" }}>
+      <CardContent>
+        <Typography sx={{ fontSize: 18 }}>Time Elapsed</Typography>
+        <Typography sx={{ fontSize: 68, textAlign: "center"}} color="text.secondary">
+          {("0" + Math.floor((time / 60000) % 60)).slice(-2)}:{("0" + Math.floor((time / 1000) % 60)).slice(-2)}:
+          {("0" + ((time / 10) % 100)).slice(-2)}
+        </Typography>
+      </CardContent>
+    </Card>
   );
 }
 
