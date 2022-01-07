@@ -22,8 +22,6 @@ reader = Reader()
 token = reader.request_token()
 gen = Generator(token)
 
-# multipleir
-# add tiestamp
 # change processing to when send event and not before sending
 
 

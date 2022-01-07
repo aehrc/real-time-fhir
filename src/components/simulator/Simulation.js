@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef, useReducer } from "react";
+import { Grid } from "@mui/material";
+import { socket } from "../../App";
 import SimulationForm from "./SimForm";
-import SimulationButtons from "./SimButtons";
 import SimulationAttributes from "./SimAttributes";
 import Stopwatch from "./Stopwatch";
 import EventTable from "./EventTable";
-import { Grid, Card, CardContent, CardActions } from "@mui/material";
-import { socket } from "../../App";
+import EventsRecieved from "./EventsRecieved";
 
 // default values for attributes state
 const defaultAttributes = {
@@ -15,7 +15,7 @@ const defaultAttributes = {
   eventsReceived: "0",
   finalEventCount: "",
   timelineDuration: "0",
-  durationMultiplier: "0"
+  durationMultiplier: "0",
 };
 
 // default values for status state
@@ -26,7 +26,7 @@ const statusReducer = (state, action) => {
     case "startSimulation":
       return { statusCode: action, statusMsg: "Generating events", startBtn: false, stopBtn: false };
     case "sendEvents":
-      return { statusCode: action, statusMsg: "Sending events", startBtn: false, stopBtn: true };
+      return { statusCode: action, statusMsg: "Receiving events", startBtn: false, stopBtn: true };
     case "stopSimulation":
       return { statusCode: action, statusMsg: "Stopping", startBtn: false, stopBtn: false };
     case "simulationStopped":
@@ -69,7 +69,7 @@ function Simulation() {
         ...attributesRef.current,
         totalEvents: numOfEvents,
         timelineDuration: timelineDuration,
-        durationMultiplier: `${timelineDuration/attributesRef.current.duration}`
+        durationMultiplier: `${timelineDuration / attributesRef.current.duration}`,
       });
       statusDispatch("sendEvents");
     });
@@ -82,7 +82,7 @@ function Simulation() {
 
       const tableRow = generateRow(idx, bundle, timestamp, elapsed, status, attributesRef.current.totalEvents);
       let tempTable = [tableRow, ...tableRef.current];
-      if (tempTable.length > 50) {
+      if (tempTable.length > 30) {
         tempTable.pop();
       }
       setTable(tempTable);
@@ -104,38 +104,41 @@ function Simulation() {
   }, []);
 
   return (
-    <div>
-      <Grid container justifyContent="center" alignItems="center" spacing={2}>
+    <React.Fragment>
+      <Grid container>
         <Grid item xs={12}>
-          <Card sx={{ my: 2 }}>
-            <CardContent>
-              <SimulationForm form={form} setForm={setForm} />
-            </CardContent>
-            <CardActions>
-              <SimulationButtons
-                formState={form}
-                attributesState={attributes}
-                setAttributes={setAttributes}
-                setTable={setTable}
-                statusState={status}
-                statusDispatch={statusDispatch}
-              />
-            </CardActions>
-          </Card>
+          <SimulationForm
+            formState={form}
+            setForm={setForm}
+            attributesState={attributes}
+            setAttributes={setAttributes}
+            setTable={setTable}
+            statusState={status}
+            statusDispatch={statusDispatch}
+          />
         </Grid>
       </Grid>
 
-      <Grid container spacing={3}>
-        <Grid item xs={9}>
+      <Grid container spacing={2}>
+        <Grid item xs={7}>
           <SimulationAttributes attributes={attributes} status={status} />
         </Grid>
+
+        <Grid item xs={2}>
+          <EventsRecieved eventsReceived={attributes.eventsReceived} totalEvents={attributes.totalEvents} />
+        </Grid>
+
         <Grid item xs={3}>
           <Stopwatch status={status} />
         </Grid>
       </Grid>
-      <EventTable tableBody={table} />
 
-    </div>
+      <Grid container>
+        <Grid item xs={12}>
+          <EventTable tableBody={table} />
+        </Grid>
+      </Grid>
+    </React.Fragment>
   );
 }
 

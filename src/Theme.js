@@ -37,7 +37,7 @@ const getThemeOptions = (mode) => ({
       : {
           // Dark mode
           primary: {
-            main: "rgb(86,179,196)",
+            main: "rgb(102,186,201)",
           },
           secondary: {
             main: pink["300"],

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { Paper, Card, CardContent, Typography } from "@mui/material";
-import "../componentStyles.css";
+import { CardContent, Typography } from "@mui/material";
+import { Timer } from "@mui/icons-material";
+import { CardHeadingTypography, FullHeightCard } from "./SimStyles";
 
 function Stopwatch(props) {
   const [time, setTime] = useState(0);
@@ -36,15 +37,18 @@ function Stopwatch(props) {
   }, [props.status]);
 
   return (
-    <Card style={{ height: "100%" }}>
+    <FullHeightCard>
       <CardContent>
-        <Typography sx={{ fontSize: 18 }}>Time Elapsed</Typography>
-        <Typography sx={{ fontSize: 68, textAlign: "center"}} color="text.secondary">
+        <CardHeadingTypography>
+          Time Elapsed
+          <Timer sx={{ ml: 0.5 }} />
+        </CardHeadingTypography>
+        <Typography sx={{ fontSize: 68, textAlign: "center" }} color="text.secondary">
           {("0" + Math.floor((time / 60000) % 60)).slice(-2)}:{("0" + Math.floor((time / 1000) % 60)).slice(-2)}:
           {("0" + ((time / 10) % 100)).slice(-2)}
         </Typography>
       </CardContent>
-    </Card>
+    </FullHeightCard>
   );
 }
 

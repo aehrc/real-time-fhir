@@ -1,30 +1,27 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { Grid, Card, CardContent, Typography } from "@mui/material";
-import { PlayArrow, Stop } from "@mui/icons-material";
-import AccountTreeIcon from "@mui/icons-material/AccountTree";
-import HourglassBottomIcon from "@mui/icons-material/HourglassBottom";
-import TimerIcon from "@mui/icons-material/Timer";
-import TopicIcon from "@mui/icons-material/Topic";
-import "../componentStyles.css";
+import React, { useState, useEffect } from "react";
+import { Grid, CardContent, Typography } from "@mui/material";
+import { Task, Timer, HourglassBottom } from "@mui/icons-material";
+import { CardHeadingTypography, FullHeightCard, RegularCard } from "./SimStyles";
 
 const SimulationAttributes = (props) => {
-  const simAttributes = {
-    simulationStatus: {
-      label: "Simulation Status",
-      value: `${props.status.statusMsg} ${props.attributes.finalEventCount}`,
-    },
-    resourceType: { label: "Resource Type", value: props.attributes.resourceType },
-    duration: { label: "Simulation Duration", value: `${props.attributes.duration} seconds` },
-    //timelineDuration: { label: "Timeline Duration", value: props.attributes.timelineDuration },
-    durationMultiplier: { label: "Duration Multiplier", value: `${props.attributes.durationMultiplier}x` },
-    eventsReceived: {
-      label: "Events Received",
-      value: `${props.attributes.eventsReceived}/${props.attributes.totalEvents}`,
-    },
-  };
+  const { attributes, status } = props;
+  const propsAttributes = {
+    simulationStatus: { label: "Simulation Status", value: `${status.statusMsg} ${attributes.finalEventCount}` },
+    resourceType: { label: "Resource Type", value: attributes.resourceType },
+    duration: { label: "Simulation Duration", value: `${attributes.duration} seconds` },
+    durationMultiplier: { label: "Duration Multiplier", value: `${attributes.durationMultiplier}x` },
+    };
+  
+  const [simAttributes, setSimAttributes] = useState(propsAttributes);
+  const [timelineFormatted, setTimelineFormatted] = useState({
+    label: "Timeline Duration",
+    value: "0 seconds",
+    icon: Timer,
+  });
 
-  const [attributes, setAttributes] = useState(simAttributes);
-  const [timelineFormatted, setTimelineFormatted] = useState({ label: "Timeline Duration", value: "0 seconds" });
+  useEffect(() => {
+    setSimAttributes(propsAttributes);
+  }, [props]);
 
   const formatTimeline = (timelineDuration) => {
     if (timelineDuration != 0) {
@@ -37,8 +34,6 @@ const SimulationAttributes = (props) => {
       let hours = timeline.getHours() - epoch.getHours();
       let minutes = timeline.getMinutes() - epoch.getMinutes();
       const seconds = timeline.getSeconds() - epoch.getSeconds();
-      console.log("Y M D H m s");
-      console.log(years, months, days, hours, minutes, seconds);
 
       if (minutes < 0) {
         hours--;
@@ -50,28 +45,29 @@ const SimulationAttributes = (props) => {
         hours += 24;
       }
 
+      
       let i = 0;
       let format = "";
       for (const [key, value] of Object.entries({ Y: years, M: months, D: days, H: hours, m: minutes, s: seconds })) {
         if (value === 0) continue;
         switch (key) {
           case "Y":
-            format += `${value} years `;
+            format += `${value} yrs `;
             break;
           case "M":
-            format += `${value} months `;
+            format += `${value} mths `;
             break;
           case "D":
             format += `${value} days `;
             break;
           case "H":
-            format += `${value} hours `;
+            format += `${value} hrs `;
             break;
           case "m":
-            format += `${value} minutes `;
+            format += `${value} mins `;
             break;
           case "s":
-            format += `${value} seconds `;
+            format += `${value} secs `;
             break;
         }
         i++;
@@ -83,53 +79,50 @@ const SimulationAttributes = (props) => {
     }
   };
   //have to optimize formattimeline so that wont be called every bundle post
+  //have to add progress bar for time
+  //have to add error handling in case backend goes down
 
   useEffect(() => {
-    setAttributes(simAttributes);
-    formatTimeline(props.attributes.timelineDuration);
-  }, [props]);
+    formatTimeline(attributes.timelineDuration);
+  }, [attributes.timelineDuration]);
 
   return (
-    <Grid container spacing={3}>
-      <Grid item xs={3}>
-        <Card style={{ height: "100%" }}>
+    <Grid container spacing={2}>
+      <Grid item xs={6}>
+        <FullHeightCard>
           <CardContent>
-            <Typography sx={{ fontSize: 18 }}>{attributes.simulationStatus.label}</Typography>
-            <Typography sx={{ fontSize: 32 }} color="text.secondary">
-              {attributes.simulationStatus.value}
+            <CardHeadingTypography>
+              {simAttributes.simulationStatus.label}
+              <HourglassBottom sx={{ ml: 0.5 }} />
+            </CardHeadingTypography>
+            <Typography sx={{ fontSize: 40 }} color="text.secondary">
+              {simAttributes.simulationStatus.value}
             </Typography>
           </CardContent>
-        </Card>
+        </FullHeightCard>
       </Grid>
 
       <Grid item xs={6}>
         <Grid container spacing={1.5}>
-          {[attributes.resourceType, attributes.duration, timelineFormatted, attributes.durationMultiplier].map(
-            (attribute, index) => (
-              <Grid item xs={6} key={index}>
-                <Card>
-                  <CardContent>
-                    <Typography sx={{ fontSize: 18 }}>{attribute.label}</Typography>
-                    <Typography sx={{ fontSize: 16 }} color="text.secondary">
-                      {attribute.value}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-            )
-          )}
-        </Grid>
-      </Grid>
+          {[
+            simAttributes.resourceType,
+            simAttributes.duration,
+            timelineFormatted,
+            simAttributes.durationMultiplier,
+          ].map((attribute, index) => (
+            <Grid item xs={6} key={index}>
+              <RegularCard>
+                <CardContent>
+                  <CardHeadingTypography>{attribute.label}</CardHeadingTypography>
 
-      <Grid item xs={3}>
-        <Card style={{ height: "100%" }}>
-          <CardContent>
-            <Typography sx={{ fontSize: 18 }}>{attributes.eventsReceived.label}</Typography>
-            <Typography sx={{ fontSize: 32 }} color="text.secondary">
-              {attributes.eventsReceived.value}
-            </Typography>
-          </CardContent>
-        </Card>
+                  <Typography sx={{ fontSize: 16 }} color="text.secondary">
+                    {attribute.value}
+                  </Typography>
+                </CardContent>
+              </RegularCard>
+            </Grid>
+          ))}
+        </Grid>
       </Grid>
     </Grid>
   );

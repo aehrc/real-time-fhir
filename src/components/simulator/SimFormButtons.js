@@ -2,9 +2,8 @@ import React from "react";
 import { Grid, Button } from "@mui/material";
 import { PlayArrow, Stop } from "@mui/icons-material";
 import { socket } from "../../App";
-import "../componentStyles.css";
 
-function SimulationButton(props) {
+function SimulationFormButtons(props) {
   const { formState, attributesState, setAttributes, setTable, statusState, statusDispatch } = props;
 
   const startSimulation = () => {
@@ -28,11 +27,10 @@ function SimulationButton(props) {
   };
 
   return (
-    <Grid container spacing={2}>
+    <Grid container>
       <Grid item xs={6}>
         <Button
           variant="contained"
-          sx={{ m: 1 }}
           startIcon={<PlayArrow />}
           onClick={startSimulation}
           disabled={!statusState.startBtn}
@@ -43,7 +41,6 @@ function SimulationButton(props) {
       <Grid item xs={6} container justifyContent="flex-end">
         <Button
           variant="contained"
-          sx={{ m: 1 }}
           startIcon={<Stop />}
           onClick={stopSimulation}
           disabled={!statusState.stopBtn}
@@ -55,4 +52,4 @@ function SimulationButton(props) {
   );
 }
 
-export default SimulationButton;
+export default SimulationFormButtons;
