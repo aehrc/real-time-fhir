@@ -10,6 +10,8 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 export const socket = io.connect("http://localhost:5000/");
 
+//TODO make transistion of navbar and smaller ocntainer
+
 function App(props) {
   const { colorMode } = props;
 

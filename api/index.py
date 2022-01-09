@@ -35,12 +35,16 @@ def find_resource(resource_type=None):
     payload = reader.search_FHIR_data(url, token)
     error_msg = ""
 
-    # handle error by removing params from url and get payload again
+    # return with error message if an error occured
     if payload["resourceType"] == "OperationOutcome":
         if payload["issue"][0]["severity"] == "error":
-            error_msg = payload
-            url = f"***REMOVED***/fhir_r4/{resource_type}"
-            payload = reader.search_FHIR_data(url, token)
+            return {
+                "title": "",
+                "url": url,
+                "headers": [],
+                "body": [],
+                "error": payload["issue"][0]["diagnostics"]
+            }
 
     # build resource table
     tb = TableBuilder(resource_type, payload)

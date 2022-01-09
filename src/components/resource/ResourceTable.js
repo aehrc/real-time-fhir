@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   Table,
   TableBody,
@@ -10,38 +10,53 @@ import {
   CardContent,
   Typography,
   Grid,
+  CircularProgress,
 } from "@mui/material";
 import { StyledTableRow, RegularCard } from "./ResourceStyles";
 
-function ResourceTable(props) {
-  const { tableState } = props;
-  console.log(tableState.body.length);
-  console.log(tableState.headers.length);
+const ResourceTable = (props) => {
+  const { tableState, setFetchButton } = props;
+  const isError = props.tableState.error !== "";
   return (
     <RegularCard>
       <CardContent>
         <Grid container>
-          {tableState.body.length ? <RenderTable tableState={tableState} />:<RenderMessage message={tableState.errorMsg} />}
+          {props.tableState.body.length ? (
+            <Grid container>
+              <RenderTable tableState={tableState} setFetchButton={setFetchButton} />
+            </Grid>
+          ) : (
+            <Grid container sx={{ my: 3 }}>
+              {isError ? <RenderError tableState={tableState} setFetchButton={setFetchButton} /> : <RenderLoading />}
+            </Grid>
+          )}
         </Grid>
       </CardContent>
     </RegularCard>
   );
-}
+};
 
 const RenderTable = (props) => {
+  const { tableState, setFetchButton } = props;
   console.log(props);
-  const { url, headers, body, errorMsg } = props.tableState;
+
+  useEffect(() => {
+    setFetchButton({ text: "Fetch resource", disabled: false });
+  });
+
   return (
     <React.Fragment>
-      <Grid item xs={6}>
-        <Typography sx={{ fontSize: 12 }} color="text.secondary">
-          Data obtained from: {url}
-        </Typography>
-      </Grid>
-      <Grid item xs={6}>
-        <Typography sx={{ fontSize: 12 }} align="right" color="text.secondary">
-          Last updated: {new Date().toTimeString()}
-        </Typography>
+      <Grid container sx={{ mb: 1 }}>
+        <Grid item xs={6}>
+          <Typography sx={{ fontSize: 13 }} color="text.secondary">
+            Data obtained from: {tableState.url}
+          </Typography>
+        </Grid>
+        <Grid item xs={6}>
+          <Typography sx={{ fontSize: 13 }} align="right" color="text.secondary">
+            Last updated: {new Date().toTimeString()}
+          </Typography>
+        </Grid>
       </Grid>
 
       <Grid item xs={12}>
@@ -49,13 +64,13 @@ const RenderTable = (props) => {
           <Table>
             <TableHead>
               <TableRow>
-                {headers.map((cell, index) => (
+                {tableState.headers.map((cell, index) => (
                   <TableCell key={index}>{cell}</TableCell>
                 ))}
               </TableRow>
             </TableHead>
             <TableBody>
-              {body.map((row, rowIndex) => (
+              {tableState.body.map((row, rowIndex) => (
                 <StyledTableRow key={rowIndex}>
                   {row.map((cell, cellIndex) => (
                     <TableCell key={cellIndex}>{cell}</TableCell>
@@ -70,24 +85,40 @@ const RenderTable = (props) => {
   );
 };
 
-const RenderMessage = (props) => {
-  if (props.message === "") {
-    return (
-      <Grid item xs={12}>
-        <Typography sx={{ fontSize: 16 }} align="center" color="text.secondary">
-          Loading table...
+const RenderError = (props) => {
+  const { tableState, setFetchButton } = props;
+
+  useEffect(() => {
+    setFetchButton({ text: "Fetch resource", disabled: false });
+  });
+
+  return (
+    <React.Fragment>
+      <Grid item xs={12} sx={{ mb: 1 }}>
+        <Typography sx={{ fontSize: 14 }}>
+          There was an error fetching the resource. Please recheck your parameters or try again later.
         </Typography>
       </Grid>
-    );
-  } else {
-    return (
       <Grid item xs={12}>
         <Typography sx={{ fontSize: 12 }} color="text.secondary">
-          {props.message}
+          {tableState.error}
         </Typography>
       </Grid>
-    );
-  }
+    </React.Fragment>
+  );
 };
+
+const RenderLoading = () => (
+  <React.Fragment>
+    <Grid item xs={12}>
+      <Typography sx={{ fontSize: 16 }} align="center">
+        Loading table...sit tight!
+      </Typography>
+    </Grid>
+    <Grid item xs={12} container justifyContent="center">
+      <CircularProgress />
+    </Grid>
+  </React.Fragment>
+);
 
 export default React.memo(ResourceTable);

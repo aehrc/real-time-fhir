@@ -1,24 +1,20 @@
-import React, { useState,useEffect } from "react";
+import React from "react";
 import { CardContent, Typography, Grid, Button, TextField, FormControl, Autocomplete } from "@mui/material";
 import { CloudDownload } from "@mui/icons-material";
 import resourceList from "../assets/resources-synthea.json";
 import { RegularCard } from "./ResourceStyles";
 
-const defaultFetchButton = { text: "Fetch resource", disabled: false };
-
 function ResourceForm(props) {
-  const [fetchButton, setFetchButton] = useState(defaultFetchButton);
-  const { resourceUrlState, setResourceUrl, tableState, setTable } = props;
+  const { resourceUrlState, setResourceUrl, fetchButton, setFetchButton, tableState, setTable } = props;
 
   const fetchResource = () => {
-    setTable({ url: "", headers: [], body: [], errorMsg: "" });
-    //setFetchButton({ text: "Fetching...", disabled: true });
+    setTable({ url: "", headers: [], body: [], error: "", title: "" });
+    setFetchButton({ text: "Fetching...", disabled: true });
     fetch(`/resources/${resourceUrlState.resourceType}${resourceUrlState.urlParams}`)
       .then((res) => res.json())
       .then((data) => setTable(data))
-      .catch((error) => setTable({ ...tableState, errorMsg: error.toString() }));
+      .catch((error) => setTable({ ...tableState, errorMsgg: error.toString() }));
   };
-
 
   return (
     <RegularCard sx={{ my: 2.5 }}>
@@ -53,9 +49,10 @@ function ResourceForm(props) {
         </Grid>
 
         <Grid container>
-          <Grid item xs={6}>
+          <Grid item xs={12}>
             <Button
               variant="contained"
+              sx={{ width: 180 }}
               startIcon={<CloudDownload />}
               onClick={fetchResource}
               disabled={fetchButton.disabled}

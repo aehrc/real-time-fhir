@@ -40,5 +40,4 @@ class Reader:
         # refresh token if auth error occurs
         if str(r.status_code) == "401":
             r = requests.get(url, headers={"Authorization": "Bearer " + self.request_token()})
-        print(r.json())
         return r.json()
