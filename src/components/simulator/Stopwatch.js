@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { CardContent, Typography } from "@mui/material";
 import { Timer } from "@mui/icons-material";
-import { CardHeadingTypography, FullHeightCard } from "./SimStyles";
+import { CardHeadingTypography, FullHeightCard } from "../ComponentStyles";
 
 function Stopwatch(props) {
   const [time, setTime] = useState(0);
@@ -25,15 +25,20 @@ function Stopwatch(props) {
     const status = props.status.statusCode;
     switch (status) {
       case "sendEvents":
-        return setRunning(true);
+        setTime(0);
+        setRunning(true);
+        break;
       case "stopSimulation":
       case "simulationComplete":
-        setTime(0);
         setRunning(false);
-        return;
+        break;
+      case "resetSimulation":
+        setTime(0);
+        break;
       default:
-        return;
+        break;
     }
+    return;
   }, [props.status]);
 
   return (

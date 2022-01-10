@@ -1,7 +1,7 @@
 import React from "react";
 import { CardContent, Typography } from "@mui/material";
 import { Task } from "@mui/icons-material";
-import { CardHeadingTypography, FullHeightCard } from "./SimStyles";
+import { CardHeadingTypography, FullHeightCard } from "../ComponentStyles";
 
 function EventsRecieved(props) {
   return (
@@ -19,4 +19,4 @@ function EventsRecieved(props) {
   );
 }
 
-export default EventsRecieved;
+export default React.memo(EventsRecieved);

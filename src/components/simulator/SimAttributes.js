@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Grid, CardContent, Typography } from "@mui/material";
-import { Task, Timer, HourglassBottom } from "@mui/icons-material";
-import { CardHeadingTypography, FullHeightCard, RegularCard } from "./SimStyles";
+import { Timer, HourglassBottom } from "@mui/icons-material";
+import { CardHeadingTypography, FullHeightCard, RegularCard } from "../ComponentStyles";
 
 const SimulationAttributes = (props) => {
   const { attributes, status } = props;
@@ -10,8 +10,8 @@ const SimulationAttributes = (props) => {
     resourceType: { label: "Resource Type", value: attributes.resourceType },
     duration: { label: "Simulation Duration", value: `${attributes.duration} seconds` },
     durationMultiplier: { label: "Duration Multiplier", value: `${attributes.durationMultiplier}x` },
-    };
-  
+  };
+
   const [simAttributes, setSimAttributes] = useState(propsAttributes);
   const [timelineFormatted, setTimelineFormatted] = useState({
     label: "Timeline Duration",
@@ -24,7 +24,7 @@ const SimulationAttributes = (props) => {
   }, [props]);
 
   const formatTimeline = (timelineDuration) => {
-    if (timelineDuration != 0) {
+    if (parseInt(timelineDuration) !== 0) {
       const timeline = new Date(timelineDuration * 1000);
       const epoch = new Date(0);
 
@@ -45,7 +45,6 @@ const SimulationAttributes = (props) => {
         hours += 24;
       }
 
-      
       let i = 0;
       let format = "";
       for (const [key, value] of Object.entries({ Y: years, M: months, D: days, H: hours, m: minutes, s: seconds })) {
@@ -69,6 +68,8 @@ const SimulationAttributes = (props) => {
           case "s":
             format += `${value} secs `;
             break;
+          default:
+            break;
         }
         i++;
         if (i === 3) break;
@@ -78,7 +79,6 @@ const SimulationAttributes = (props) => {
       setTimelineFormatted({ ...timelineFormatted, value: "0 seconds" });
     }
   };
-  //have to optimize formattimeline so that wont be called every bundle post
   //have to add progress bar for time
   //have to add error handling in case backend goes down
 

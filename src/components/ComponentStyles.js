@@ -1,5 +1,5 @@
 import { styled } from "@mui/material/styles";
-import { Typography, TableRow, Card, Button } from "@mui/material";
+import { Typography, TableRow, Card } from "@mui/material";
 
 export const CardHeadingTypography = styled(Typography)(({ theme }) => ({
   fontSize: 18,
@@ -22,4 +22,3 @@ export const FullHeightCard = styled(Card)(({ theme }) => ({
 export const RegularCard = styled(Card)(({ theme }) => ({
   borderRadius: 10,
 }));
-

@@ -5,7 +5,6 @@ const pages = ["Simulator", "Resources"];
 
 const NavBar = () => {
   const currentPath = window.location.pathname.substring(1);
-  console.log(currentPath)
   return (
     <AppBar position="static">
       <Container maxWidth="xl">
@@ -17,14 +16,9 @@ const NavBar = () => {
           </Typography>
 
           <Box sx={{ flexGrow: 1 }}>
-            {pages.map((pageName) => {
-              const page = pageName.toLowerCase();
-              return currentPath === page ? (
-                <NavButton key={page} page={page} color={"rgb(102,186,201)"} />
-              ) : (
-                <NavButton key={page} page={page} color={"white"} />
-              );
-            })}
+            {pages.map((page, index) => (
+              <NavButton key={index} page={page.toLowerCase()} color={"white"} />
+            ))}
           </Box>
         </Toolbar>
       </Container>

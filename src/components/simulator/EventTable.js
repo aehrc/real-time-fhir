@@ -1,6 +1,6 @@
 import React from "react";
-import { Table, TableBody, TableContainer, TableHead, TableRow, TableCell, Paper, Card } from "@mui/material";
-import { StyledTableRow, RegularCard } from "./SimStyles";
+import { Table, TableBody, TableContainer, TableHead, TableRow, TableCell, Paper } from "@mui/material";
+import { StyledTableRow, RegularCard } from "../ComponentStyles";
 
 const tableHeaders = ["No.", "Resource", "Refs.", "References", "Timestamp", "Elapsed (s)", "Status"];
 const EventTable = (props) => (

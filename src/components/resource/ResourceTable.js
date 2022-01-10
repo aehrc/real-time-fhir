@@ -12,7 +12,7 @@ import {
   Grid,
   CircularProgress,
 } from "@mui/material";
-import { StyledTableRow, RegularCard } from "./ResourceStyles";
+import { StyledTableRow, RegularCard } from "../ComponentStyles";
 
 const ResourceTable = (props) => {
   const { tableState, setFetchButton } = props;

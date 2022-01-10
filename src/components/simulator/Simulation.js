@@ -18,51 +18,22 @@ const defaultAttributes = {
   durationMultiplier: "0",
 };
 
-// default values for status state
-const statusReducer = (state, action) => {
-  switch (action) {
-    case "notRunning":
-      return { statusCode: action, statusMsg: "Not running", startBtn: true, stopBtn: false };
-    case "startSimulation":
-      return { statusCode: action, statusMsg: "Generating events", startBtn: false, stopBtn: false };
-    case "sendEvents":
-      return { statusCode: action, statusMsg: "Receiving events", startBtn: false, stopBtn: true };
-    case "stopSimulation":
-      return { statusCode: action, statusMsg: "Stopping", startBtn: false, stopBtn: false };
-    case "simulationStopped":
-      return { statusCode: action, statusMsg: "Ended early", startBtn: true, stopBtn: false };
-    case "simulationComplete":
-      return { statusCode: action, statusMsg: "Completed", startBtn: true, stopBtn: false };
-    default:
-      return state;
-  }
-};
-
 function Simulation() {
-  // Simulation form state
+  // Form, Attributes and Table states
   const [form, setForm] = useState({
     resourceType: "DiagnosticReport",
     duration: 60,
   });
 
-  // Simulation attributes state
   const [attributes, setAttributes] = useState(defaultAttributes);
   const attributesRef = useRef(defaultAttributes);
   attributesRef.current = attributes;
 
-  // Event table state
   const [table, setTable] = useState([]);
   const tableRef = useRef([]);
   tableRef.current = table;
 
-  // Simulation Status reducer
-  const [status, statusDispatch] = useReducer(statusReducer, {
-    statusCode: "notRunning",
-    statusMsg: "Not running",
-    startBtn: true,
-    stopBtn: false,
-  });
-
+  // sockets receiving messages from backend
   useEffect(() => {
     socket.on("sendEvents", (numOfEvents, timelineDuration) => {
       setAttributes({
@@ -95,7 +66,7 @@ function Simulation() {
         statusDispatch("simulationStopped");
       }
       setAttributes({
-        ...attributes,
+        ...attributesRef.current,
         finalEventCount: `${attributesRef.current.eventsReceived}/${attributesRef.current.totalEvents}`,
       });
     });
@@ -103,19 +74,54 @@ function Simulation() {
     return () => socket.disconnect();
   }, []);
 
+  // Reducer for simulation status
+  const statusReducer = (state, action) => {
+    switch (action) {
+      case "notRunning":
+        return { statusCode: action, statusMsg: "Not running", startBtn: true, stopBtn: false, resetBtn: false };
+      case "startSimulation":
+        setAttributes(defaultAttributes);
+        setTable([]);
+        setAttributes({
+          ...attributes,
+          resourceType: form.resourceType,
+          duration: form.duration,
+          finalEventCount: "",
+        });
+        socket.emit("start_simulation", { rtype: form.resourceType, duration: parseInt(form.duration) });
+        return { statusCode: action, statusMsg: "Generating events", startBtn: false, stopBtn: false, resetBtn: false };
+      case "sendEvents":
+        return { statusCode: action, statusMsg: "Receiving events", startBtn: false, stopBtn: true, resetBtn: false };
+      case "stopSimulation":
+        socket.emit("stop_simulation", true);
+        return { statusCode: action, statusMsg: "Stopping", startBtn: false, stopBtn: false, resetBtn: false };
+      case "simulationStopped":
+        return { statusCode: action, statusMsg: "Ended early", startBtn: true, stopBtn: false, resetBtn: true };
+      case "simulationComplete":
+        return { statusCode: action, statusMsg: "Completed", startBtn: true, stopBtn: false, resetBtn: true };
+      case "resetSimulation":
+        setAttributes(defaultAttributes);
+        setTable([]);
+        return { statusCode: action, statusMsg: "Not running", startBtn: true, stopBtn: false, resetBtn: false };
+      default:
+        return state;
+    }
+  };
+
+  // Simulation Status reducer
+  const [status, statusDispatch] = useReducer(statusReducer, {
+    statusCode: "notRunning",
+    statusMsg: "Not running",
+    startBtn: true,
+    stopBtn: false,
+    resetBtn: false,
+  });
+
   return (
     <React.Fragment>
       <Grid container>
         <Grid item xs={12}>
-          <SimulationForm
-            formState={form}
-            setForm={setForm}
-            attributesState={attributes}
-            setAttributes={setAttributes}
-            setTable={setTable}
-            statusState={status}
-            statusDispatch={statusDispatch}
-          />
+          <SimulationForm formState={form} setForm={setForm} statusState={status} statusDispatch={statusDispatch} />
         </Grid>
       </Grid>
 

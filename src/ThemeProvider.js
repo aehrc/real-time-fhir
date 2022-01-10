@@ -1,6 +1,5 @@
-
 import React, { createContext } from "react";
-import { createTheme, CssBaseline, PaletteMode } from "@mui/material";
+import { createTheme, CssBaseline } from "@mui/material";
 import getThemeOptions from "./Theme";
 import { ThemeProvider as MuiThemeProvider } from "@mui/material/styles";
 

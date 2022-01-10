@@ -1,29 +1,20 @@
 import React from "react";
 import { Grid, Button } from "@mui/material";
-import { PlayArrow, Stop } from "@mui/icons-material";
-import { socket } from "../../App";
+import { PlayArrow, RestartAlt, Stop } from "@mui/icons-material";
 
 function SimulationFormButtons(props) {
-  const { formState, attributesState, setAttributes, setTable, statusState, statusDispatch } = props;
+  const { statusState, statusDispatch } = props;
 
   const startSimulation = () => {
-    setTable([]);
-    setAttributes({
-      ...attributesState,
-      resourceType: formState.resourceType,
-      duration: formState.duration,
-      finalEventCount: "",
-    });
     statusDispatch("startSimulation");
-    socket.emit("start_simulation", {
-      rtype: formState.resourceType,
-      duration: parseInt(formState.duration),
-    });
+  };
+
+  const resetSimulation = () => {
+    statusDispatch("resetSimulation");
   };
 
   const stopSimulation = () => {
     statusDispatch("stopSimulation");
-    socket.emit("stop_simulation", true);
   };
 
   return (
@@ -38,13 +29,18 @@ function SimulationFormButtons(props) {
           Start Simulation
         </Button>
       </Grid>
+
       <Grid item xs={6} container justifyContent="flex-end">
         <Button
           variant="contained"
-          startIcon={<Stop />}
-          onClick={stopSimulation}
-          disabled={!statusState.stopBtn}
+          startIcon={<RestartAlt />}
+          onClick={resetSimulation}
+          disabled={!statusState.resetBtn}
+          sx = {{mr: 1.5}}
         >
+          Reset Simulation
+        </Button>
+        <Button variant="contained" startIcon={<Stop />} onClick={stopSimulation} disabled={!statusState.stopBtn} color="error" >
           Stop Simulation
         </Button>
       </Grid>
@@ -52,4 +48,4 @@ function SimulationFormButtons(props) {
   );
 }
 
-export default SimulationFormButtons;
+export default React.memo(SimulationFormButtons);

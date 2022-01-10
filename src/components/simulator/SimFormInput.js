@@ -42,4 +42,4 @@ function SimulationFormInput(props) {
   );
 }
 
-export default SimulationFormInput;
+export default React.memo(SimulationFormInput);

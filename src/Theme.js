@@ -1,4 +1,4 @@
-import { deepOrange, green, grey, lightBlue, pink } from "@mui/material/colors";
+import { deepOrange, green, grey, lightBlue, pink, red } from "@mui/material/colors";
 
 const getThemeOptions = (mode) => ({
   palette: {
@@ -33,11 +33,20 @@ const getThemeOptions = (mode) => ({
             dark: "rgb(81,150,87)",
             contrastText: "#fff",
           },
+          error: {
+            main: red["300"],
+            light: "#B00020",
+            dark: "#CF6679",
+            contrastText: "#fff",
+          }
         }
       : {
           // Dark mode
+          background: {
+            default: "#121212",
+          },
           primary: {
-            main: "rgb(102,186,201)",
+            main: "rgb(102,186,201)"
           },
           secondary: {
             main: pink["300"],
@@ -59,6 +68,17 @@ const getThemeOptions = (mode) => ({
             light: "rgb(178,250,180)",
             dark: "rgb(81,150,87)",
             contrastText: "#fff",
+          },
+          accent4: {
+            main: green["300"],
+            light: "rgb(178,250,180)",
+            dark: "rgb(81,150,87)",
+            contrastText: "#fff",
+          },
+          error: {
+            main: red["300"],
+            light: "#B00020",
+            dark: "#CF6679"
           },
         }),
   },
