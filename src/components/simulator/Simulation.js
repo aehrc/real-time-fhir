@@ -1,13 +1,10 @@
 import React, { useState, useEffect, useRef, useReducer } from "react";
 import { Grid } from "@mui/material";
 import { socket } from "../../App";
-import SimulationForm from "./SimForm";
-import SimulationAttributes from "./SimAttributes";
-import Stopwatch from "./Stopwatch";
+import SimulationForm from "./SimForm/SimForm";
+import SimulationAttributes from "./SimAttributes/SimAttributes";
 import EventTable from "./EventTable";
-import EventsRecieved from "./EventsRecieved";
 
-// default values for attributes state
 const defaultAttributes = {
   resourceType: "Not Specified",
   duration: "0",
@@ -16,6 +13,27 @@ const defaultAttributes = {
   finalEventCount: "",
   timelineDuration: "0",
   durationMultiplier: "0",
+};
+
+const statusReducer = (state, action) => {
+  switch (action) {
+    case "notRunning":
+      return { statusCode: action, statusMsg: "Not running", startBtn: true, stopBtn: false, resetBtn: false };
+    case "startSimulation":
+      return { statusCode: action, statusMsg: "Generating events", startBtn: false, stopBtn: false, resetBtn: false };
+    case "sendEvents":
+      return { statusCode: action, statusMsg: "Receiving events", startBtn: false, stopBtn: true, resetBtn: false };
+    case "stopSimulation":
+      return { statusCode: action, statusMsg: "Stopping", startBtn: false, stopBtn: false, resetBtn: false };
+    case "simulationStopped":
+      return { statusCode: action, statusMsg: "Ended early", startBtn: true, stopBtn: false, resetBtn: true };
+    case "simulationComplete":
+      return { statusCode: action, statusMsg: "Completed", startBtn: true, stopBtn: false, resetBtn: true };
+    case "resetSimulation":
+      return { statusCode: action, statusMsg: "Not running", startBtn: true, stopBtn: false, resetBtn: false };
+    default:
+      return state;
+  }
 };
 
 function Simulation() {
@@ -32,6 +50,15 @@ function Simulation() {
   const [table, setTable] = useState([]);
   const tableRef = useRef([]);
   tableRef.current = table;
+
+  // Simulation Status reducer
+  const [status, statusDispatch] = useReducer(statusReducer, {
+    statusCode: "notRunning",
+    statusMsg: "Not running",
+    startBtn: true,
+    stopBtn: false,
+    resetBtn: false,
+  });
 
   // sockets receiving messages from backend
   useEffect(() => {
@@ -74,69 +101,24 @@ function Simulation() {
     return () => socket.disconnect();
   }, []);
 
-  // Reducer for simulation status
-  const statusReducer = (state, action) => {
-    switch (action) {
-      case "notRunning":
-        return { statusCode: action, statusMsg: "Not running", startBtn: true, stopBtn: false, resetBtn: false };
-      case "startSimulation":
-        setAttributes(defaultAttributes);
-        setTable([]);
-        setAttributes({
-          ...attributes,
-          resourceType: form.resourceType,
-          duration: form.duration,
-          finalEventCount: "",
-        });
-        socket.emit("start_simulation", { rtype: form.resourceType, duration: parseInt(form.duration) });
-        return { statusCode: action, statusMsg: "Generating events", startBtn: false, stopBtn: false, resetBtn: false };
-      case "sendEvents":
-        return { statusCode: action, statusMsg: "Receiving events", startBtn: false, stopBtn: true, resetBtn: false };
-      case "stopSimulation":
-        socket.emit("stop_simulation", true);
-        return { statusCode: action, statusMsg: "Stopping", startBtn: false, stopBtn: false, resetBtn: false };
-      case "simulationStopped":
-        return { statusCode: action, statusMsg: "Ended early", startBtn: true, stopBtn: false, resetBtn: true };
-      case "simulationComplete":
-        return { statusCode: action, statusMsg: "Completed", startBtn: true, stopBtn: false, resetBtn: true };
-      case "resetSimulation":
-        setAttributes(defaultAttributes);
-        setTable([]);
-        return { statusCode: action, statusMsg: "Not running", startBtn: true, stopBtn: false, resetBtn: false };
-      default:
-        return state;
-    }
-  };
-
-  // Simulation Status reducer
-  const [status, statusDispatch] = useReducer(statusReducer, {
-    statusCode: "notRunning",
-    statusMsg: "Not running",
-    startBtn: true,
-    stopBtn: false,
-    resetBtn: false,
-  });
-
   return (
     <React.Fragment>
       <Grid container>
         <Grid item xs={12}>
-          <SimulationForm formState={form} setForm={setForm} statusState={status} statusDispatch={statusDispatch} />
+          <SimulationForm
+            formState={form}
+            setForm={setForm}
+            defaultAttributes={defaultAttributes}
+            setAttributes={setAttributes}
+            setTable={setTable}
+            statusState={status}
+            statusDispatch={statusDispatch}
+          />
         </Grid>
       </Grid>
 
       <Grid container spacing={2}>
-        <Grid item xs={7}>
-          <SimulationAttributes attributes={attributes} status={status} />
-        </Grid>
-
-        <Grid item xs={2}>
-          <EventsRecieved eventsReceived={attributes.eventsReceived} totalEvents={attributes.totalEvents} />
-        </Grid>
-
-        <Grid item xs={3}>
-          <Stopwatch status={status} />
-        </Grid>
+        <SimulationAttributes attributes={attributes} status={status} />
       </Grid>
 
       <Grid container>

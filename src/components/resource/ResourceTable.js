@@ -38,7 +38,6 @@ const ResourceTable = (props) => {
 
 const RenderTable = (props) => {
   const { tableState, setFetchButton } = props;
-  console.log(props);
 
   useEffect(() => {
     setFetchButton({ text: "Fetch resource", disabled: false });

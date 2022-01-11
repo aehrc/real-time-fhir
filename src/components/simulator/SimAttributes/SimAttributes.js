@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Grid, CardContent, Typography } from "@mui/material";
-import { Timer, HourglassBottom } from "@mui/icons-material";
-import { CardHeadingTypography, FullHeightCard, RegularCard } from "../ComponentStyles";
+import { Grid } from "@mui/material";
+import { Timer } from "@mui/icons-material";
+import SimulationConstantAttributes from "./SimConstantAttributes";
+import Stopwatch from "./Stopwatch";
+import EventsRecieved from "./EventsRecieved";
+import SimulationStatus from "./SimStatus";
 
-const SimulationAttributes = (props) => {
+function SimulationAttributes(props) {
   const { attributes, status } = props;
   const propsAttributes = {
     simulationStatus: { label: "Simulation Status", value: `${status.statusMsg} ${attributes.finalEventCount}` },
@@ -79,53 +82,34 @@ const SimulationAttributes = (props) => {
       setTimelineFormatted({ ...timelineFormatted, value: "0 seconds" });
     }
   };
-  //have to add progress bar for time
-  //have to add error handling in case backend goes down
 
   useEffect(() => {
     formatTimeline(attributes.timelineDuration);
   }, [attributes.timelineDuration]);
 
   return (
-    <Grid container spacing={2}>
-      <Grid item xs={6}>
-        <FullHeightCard>
-          <CardContent>
-            <CardHeadingTypography>
-              {simAttributes.simulationStatus.label}
-              <HourglassBottom sx={{ ml: 0.5 }} />
-            </CardHeadingTypography>
-            <Typography sx={{ fontSize: 40 }} color="text.secondary">
-              {simAttributes.simulationStatus.value}
-            </Typography>
-          </CardContent>
-        </FullHeightCard>
-      </Grid>
+    <React.Fragment>
+      <Grid item xs={7}>
+        <Grid container spacing={2}>
+          <Grid item xs={6}>
+            <SimulationStatus simulationStatus={simAttributes.simulationStatus} />
+          </Grid>
 
-      <Grid item xs={6}>
-        <Grid container spacing={1.5}>
-          {[
-            simAttributes.resourceType,
-            simAttributes.duration,
-            timelineFormatted,
-            simAttributes.durationMultiplier,
-          ].map((attribute, index) => (
-            <Grid item xs={6} key={index}>
-              <RegularCard>
-                <CardContent>
-                  <CardHeadingTypography>{attribute.label}</CardHeadingTypography>
-
-                  <Typography sx={{ fontSize: 16 }} color="text.secondary">
-                    {attribute.value}
-                  </Typography>
-                </CardContent>
-              </RegularCard>
-            </Grid>
-          ))}
+          <Grid item xs={6}>
+            <SimulationConstantAttributes simAttributes={simAttributes} timelineFormatted={timelineFormatted} />
+          </Grid>
         </Grid>
       </Grid>
-    </Grid>
+
+      <Grid item xs={2}>
+        <EventsRecieved eventsReceived={attributes.eventsReceived} totalEvents={attributes.totalEvents} />
+      </Grid>
+
+      <Grid item xs={3}>
+        <Stopwatch status={status} />
+      </Grid>
+    </React.Fragment>
   );
-};
+}
 
 export default SimulationAttributes;

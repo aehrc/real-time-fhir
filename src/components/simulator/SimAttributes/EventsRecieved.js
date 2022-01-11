@@ -1,7 +1,7 @@
 import React from "react";
 import { CardContent, Typography } from "@mui/material";
 import { Task } from "@mui/icons-material";
-import { CardHeadingTypography, FullHeightCard } from "../ComponentStyles";
+import { CardHeadingTypography, FullHeightCard } from "../../ComponentStyles";
 
 function EventsRecieved(props) {
   return (

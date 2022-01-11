@@ -15,6 +15,9 @@ const getThemeOptions = (mode) => ({
           secondary: {
             main: pink["600"],
           },
+          error: {
+            main: "#B00020",
+          },
           accent1: {
             main: pink["200"],
             light: "rgb(255,193,227)",
@@ -31,12 +34,6 @@ const getThemeOptions = (mode) => ({
             main: green["300"],
             light: "rgb(178,250,180)",
             dark: "rgb(81,150,87)",
-            contrastText: "#fff",
-          },
-          error: {
-            main: red["300"],
-            light: "#B00020",
-            dark: "#CF6679",
             contrastText: "#fff",
           }
         }
@@ -46,10 +43,13 @@ const getThemeOptions = (mode) => ({
             default: "#121212",
           },
           primary: {
-            main: "rgb(102,186,201)"
+            main: "rgb(102,186,201)",
           },
           secondary: {
             main: pink["300"],
+          },
+          error: {
+            main: "#CF6679",
           },
           accent1: {
             main: pink["200"],
@@ -68,17 +68,6 @@ const getThemeOptions = (mode) => ({
             light: "rgb(178,250,180)",
             dark: "rgb(81,150,87)",
             contrastText: "#fff",
-          },
-          accent4: {
-            main: green["300"],
-            light: "rgb(178,250,180)",
-            dark: "rgb(81,150,87)",
-            contrastText: "#fff",
-          },
-          error: {
-            main: red["300"],
-            light: "#B00020",
-            dark: "#CF6679"
           },
         }),
   },

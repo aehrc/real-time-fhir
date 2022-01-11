@@ -10,6 +10,11 @@ from api.generator import Generator
 from api.reader import Reader
 from api.tablebuilder import TableBuilder
 
+
+# change processing to when send event and not before sending
+# fix errors in backend
+
+
 s = sched.scheduler(time.time)
 
 app = Flask(__name__)
@@ -21,8 +26,6 @@ log.setLevel(logging.ERROR)
 reader = Reader()
 token = reader.request_token()
 gen = Generator(token)
-
-# change processing to when send event and not before sending
 
 
 @app.route("/resources/<resource_type>")
@@ -43,7 +46,7 @@ def find_resource(resource_type=None):
                 "url": url,
                 "headers": [],
                 "body": [],
-                "error": payload["issue"][0]["diagnostics"]
+                "error": payload["issue"][0]["diagnostics"],
             }
 
     # build resource table

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { CardContent, Typography } from "@mui/material";
 import { Timer } from "@mui/icons-material";
-import { CardHeadingTypography, FullHeightCard } from "../ComponentStyles";
+import { CardHeadingTypography, FullHeightCard } from "../../ComponentStyles";
 
 function Stopwatch(props) {
   const [time, setTime] = useState(0);
@@ -24,6 +24,9 @@ function Stopwatch(props) {
   useEffect(() => {
     const status = props.status.statusCode;
     switch (status) {
+      case "startSimulation":
+        setTime(0);
+        break;
       case "sendEvents":
         setTime(0);
         setRunning(true);
