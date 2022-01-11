@@ -1,82 +1,86 @@
 import React, { useState, useEffect, useRef, useReducer } from "react";
-import SimulationForm from "./SimForm";
-import SimulationButtons from "./SimButtons";
-import SimulationAttributes from "./SimAttributes";
-import Stopwatch from "./Stopwatch";
-import EventTable from "./EventTable";
+import { Grid } from "@mui/material";
 import { socket } from "../../App";
+import SimulationForm from "./SimForm/SimForm";
+import SimulationAttributes from "./SimAttributes/SimAttributes";
+import EventTable from "./EventTable";
 
-// default values for attributes state
 const defaultAttributes = {
   resourceType: "Not Specified",
   duration: "0",
   totalEvents: "0",
   eventsReceived: "0",
   finalEventCount: "",
+  timelineDuration: "0",
+  durationMultiplier: "0",
 };
 
-// default values for status state
 const statusReducer = (state, action) => {
   switch (action) {
     case "notRunning":
-      return { startBtn: true, stopBtn: false, statusMsg: "Not running" };
+      return { statusCode: action, statusMsg: "Not running", startBtn: true, stopBtn: false, resetBtn: false };
     case "startSimulation":
-      return { startBtn: false, stopBtn: false, statusMsg: "Generating events" };
+      return { statusCode: action, statusMsg: "Generating events", startBtn: false, stopBtn: false, resetBtn: false };
     case "sendEvents":
-      return { startBtn: false, stopBtn: true, statusMsg: "Sending events" };
+      return { statusCode: action, statusMsg: "Receiving events", startBtn: false, stopBtn: true, resetBtn: false };
     case "stopSimulation":
-      return { startBtn: false, stopBtn: false, statusMsg: "Stopping simulation" };
+      return { statusCode: action, statusMsg: "Stopping", startBtn: false, stopBtn: false, resetBtn: false };
     case "simulationStopped":
-      return { startBtn: true, stopBtn: false, statusMsg: "Simulation ended early" };
+      return { statusCode: action, statusMsg: "Ended early", startBtn: true, stopBtn: false, resetBtn: true };
     case "simulationComplete":
-      return { startBtn: true, stopBtn: false, statusMsg: "Simulation completed" };
+      return { statusCode: action, statusMsg: "Completed", startBtn: true, stopBtn: false, resetBtn: true };
+    case "resetSimulation":
+      return { statusCode: action, statusMsg: "Not running", startBtn: true, stopBtn: false, resetBtn: false };
     default:
       return state;
   }
 };
 
 function Simulation() {
-  // Simulation form state
+  // Form, Attributes and Table states
   const [form, setForm] = useState({
     resourceType: "DiagnosticReport",
     duration: 60,
   });
 
-  // Simulation attributes state
   const [attributes, setAttributes] = useState(defaultAttributes);
   const attributesRef = useRef(defaultAttributes);
   attributesRef.current = attributes;
 
-  // Event table state
   const [table, setTable] = useState([]);
   const tableRef = useRef([]);
   tableRef.current = table;
 
   // Simulation Status reducer
   const [status, statusDispatch] = useReducer(statusReducer, {
+    statusCode: "notRunning",
+    statusMsg: "Not running",
     startBtn: true,
     stopBtn: false,
-    statusMsg: "Not running",
+    resetBtn: false,
   });
 
+  // sockets receiving messages from backend
   useEffect(() => {
-    socket.on("sendEvents", (data) => {
+    socket.on("sendEvents", (numOfEvents, timelineDuration) => {
       setAttributes({
         ...attributesRef.current,
-        totalEvents: data,
+        totalEvents: numOfEvents,
+        timelineDuration: timelineDuration,
+        durationMultiplier: `${timelineDuration / attributesRef.current.duration}`,
       });
       statusDispatch("sendEvents");
     });
 
-    socket.on("postBundle", (idx, bundle, elapsed, status) => {
+    socket.on("postBundle", (idx, bundle, timestamp, elapsed, status) => {
       setAttributes({
         ...attributesRef.current,
         eventsReceived: idx,
       });
 
-      const tableRow = generateRow(idx, bundle, elapsed, status, attributesRef.current.totalEvents);
+      const tableRow = generateRow(idx, bundle, timestamp, elapsed, status, attributesRef.current.totalEvents);
       let tempTable = [tableRow, ...tableRef.current];
-      if (tempTable.length > 100) {
+      if (tempTable.length > 30) {
         tempTable.pop();
       }
       setTable(tempTable);
@@ -89,7 +93,7 @@ function Simulation() {
         statusDispatch("simulationStopped");
       }
       setAttributes({
-        ...attributes,
+        ...attributesRef.current,
         finalEventCount: `${attributesRef.current.eventsReceived}/${attributesRef.current.totalEvents}`,
       });
     });
@@ -98,26 +102,35 @@ function Simulation() {
   }, []);
 
   return (
-    <div>
-      <p className="h1 title">Simulator</p>
-      <SimulationForm form={form} setForm={setForm} />
-      <SimulationButtons
-        formState={form}
-        attributesState={attributes}
-        setAttributes={setAttributes}
-        setTable={setTable}
-        statusState={status}
-        statusDispatch={statusDispatch}
-      />
+    <React.Fragment>
+      <Grid container>
+        <Grid item xs={12}>
+          <SimulationForm
+            formState={form}
+            setForm={setForm}
+            defaultAttributes={defaultAttributes}
+            setAttributes={setAttributes}
+            setTable={setTable}
+            statusState={status}
+            statusDispatch={statusDispatch}
+          />
+        </Grid>
+      </Grid>
 
-      <SimulationAttributes attributes={attributes} status={status} />
-      <Stopwatch status={status} />
-      <EventTable tableBody={table} />
-    </div>
+      <Grid container spacing={2}>
+        <SimulationAttributes attributes={attributes} status={status} />
+      </Grid>
+
+      <Grid container>
+        <Grid item xs={12}>
+          <EventTable tableBody={table} />
+        </Grid>
+      </Grid>
+    </React.Fragment>
   );
 }
 
-const generateRow = (idx, bundle, elapsed, status, total_events) => {
+const generateRow = (idx, bundle, timestamp, elapsed, status, total_events) => {
   const row = {
     eventNo: `${idx}/${total_events}`,
     resource: {
@@ -126,7 +139,8 @@ const generateRow = (idx, bundle, elapsed, status, total_events) => {
     },
     refCount: bundle.entry.length - 1,
     references: [],
-    timestamp: elapsed,
+    timestamp: timestamp,
+    elapsed: elapsed,
     status: status,
   };
 

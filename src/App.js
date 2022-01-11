@@ -1,35 +1,32 @@
 import "./App.css";
+import { Container } from "@mui/material";
 import io from "socket.io-client";
+import ThemeProvider from "./ThemeProvider";
 import NavBar from "./components/NavBar";
 import Simulation from "./components/simulator/Simulation";
 import Resource from "./components/resource/Resource";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Container from 'react-bootstrap/Container'
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 export const socket = io.connect("http://localhost:5000/");
 
-function App() {
+//TODO make transistion of navbar and smaller ocntainer
+
+function App(props) {
+  const { colorMode } = props;
+
   return (
-    <div>
+    <ThemeProvider mode={colorMode}>
       <NavBar></NavBar>
-      <Container fluid="lg">
+      <Container maxWidth="xl">
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Resource />} />
-            <Route path="/simulation" element={<Simulation />} />
-            <Route path="/resource" element={<Resource />} />
-            <Route
-              path="*"
-              element={
-                <div>
-                  <p>There's nothing here!</p>
-                </div>
-              }
-            />
+            <Route path="/simulator" element={<Simulation />} />
+            <Route path="/resources" element={<Resource />} />
+            <Route path="*" element={<Navigate replace to="/simulator" />} />
           </Routes>
         </BrowserRouter>
       </Container>
-    </div>
+    </ThemeProvider>
   );
 }
 

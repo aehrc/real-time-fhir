@@ -36,4 +36,8 @@ class Reader:
     def search_FHIR_data(self, url, token):
         r = requests.get(url, headers={"Authorization": "Bearer " + token})
         print(url, r.status_code)
+
+        # refresh token if auth error occurs
+        if str(r.status_code) == "401":
+            r = requests.get(url, headers={"Authorization": "Bearer " + self.request_token()})
         return r.json()
