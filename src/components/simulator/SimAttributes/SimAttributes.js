@@ -3,7 +3,7 @@ import { Grid } from "@mui/material";
 import { Timer } from "@mui/icons-material";
 import SimulationConstantAttributes from "./SimConstantAttributes";
 import Stopwatch from "./Stopwatch";
-import EventsRecieved from "./EventsRecieved";
+import EventsSent from "./EventsSent";
 import SimulationStatus from "./SimStatus";
 
 function SimulationAttributes(props) {
@@ -102,7 +102,7 @@ function SimulationAttributes(props) {
       </Grid>
 
       <Grid item xs={2}>
-        <EventsRecieved eventsReceived={attributes.eventsReceived} totalEvents={attributes.totalEvents} />
+        <EventsSent eventsSent={attributes.eventsSent} totalEvents={attributes.totalEvents} />
       </Grid>
 
       <Grid item xs={3}>
