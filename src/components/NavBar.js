@@ -11,7 +11,7 @@ const NavBar = () => {
         <Toolbar disableGutters>
           <Typography variant="h6" noWrap component="div" sx={{ mr: 2.5 }}>
             <Link href="/" sx={{ textDecoration: "none" }} style={{ color: "white" }}>
-              Real-Time-FHIR
+              Real Time FHIR
             </Link>
           </Typography>
 

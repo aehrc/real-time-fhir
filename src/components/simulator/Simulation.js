@@ -9,7 +9,7 @@ const defaultAttributes = {
   resourceType: "Not Specified",
   duration: "0",
   totalEvents: "0",
-  eventsReceived: "0",
+  eventsSent: "0",
   finalEventCount: "",
   timelineDuration: "0",
   durationMultiplier: "0",
@@ -22,7 +22,7 @@ const statusReducer = (state, action) => {
     case "startSimulation":
       return { statusCode: action, statusMsg: "Generating events", startBtn: false, stopBtn: false, resetBtn: false };
     case "sendEvents":
-      return { statusCode: action, statusMsg: "Receiving events", startBtn: false, stopBtn: true, resetBtn: false };
+      return { statusCode: action, statusMsg: "Sending events", startBtn: false, stopBtn: true, resetBtn: false };
     case "stopSimulation":
       return { statusCode: action, statusMsg: "Stopping", startBtn: false, stopBtn: false, resetBtn: false };
     case "simulationStopped":
@@ -75,7 +75,7 @@ function Simulation() {
     socket.on("postBundle", (idx, bundle, timestamp, elapsed, status) => {
       setAttributes({
         ...attributesRef.current,
-        eventsReceived: idx,
+        eventsSent: idx,
       });
 
       const tableRow = generateRow(idx, bundle, timestamp, elapsed, status, attributesRef.current.totalEvents);
@@ -87,14 +87,14 @@ function Simulation() {
     });
 
     socket.on("simulationEnd", (data) => {
-      if (attributesRef.current.eventsReceived === attributesRef.current.totalEvents) {
+      if (attributesRef.current.eventsSent === attributesRef.current.totalEvents) {
         statusDispatch("simulationComplete");
       } else {
         statusDispatch("simulationStopped");
       }
       setAttributes({
         ...attributesRef.current,
-        finalEventCount: `${attributesRef.current.eventsReceived}/${attributesRef.current.totalEvents}`,
+        finalEventCount: `${attributesRef.current.eventsSent}/${attributesRef.current.totalEvents}`,
       });
     });
 
