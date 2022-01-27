@@ -1,3 +1,3 @@
 #!/bin/sh
 
-cd api && flask run
+cd api && venv/bin/flask run
