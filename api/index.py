@@ -10,10 +10,8 @@ from api.generator import Generator
 from api.reader import Reader
 from api.tablebuilder import TableBuilder
 
-
 # change processing to when send event and not before sending
 # fix errors in backend
-
 
 s = sched.scheduler(time.time)
 
@@ -79,7 +77,7 @@ def stop_simulation(data):
 
 # start timer and send events to FHIR client
 def send_events(events):
-    url = "***REMOVED***/fhir_r4/"
+    url = "http://localhost:8080/fhir/"
     emit("sendEvents", (len(events), calcTimelineDuration(events)))
     start_time = time.time()
     for i, event in enumerate(events):
@@ -101,7 +99,7 @@ def send_single_event(event, url, start_time, idx, num_of_events):
             url,
             json=event["resource"],
             headers={"Authorization": "Bearer " + token},
-            timeout=5,
+            timeout=90,
         )
     except:
         has_error = True
@@ -111,7 +109,7 @@ def send_single_event(event, url, start_time, idx, num_of_events):
                 url,
                 json=event["resource"],
                 headers={"Authorization": "Bearer " + token},
-                timeout=5,
+                timeout=90,
             )
             has_error = False
 
