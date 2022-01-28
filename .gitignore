@@ -25,6 +25,3 @@ yarn-error.log*
 # python api venv & pycache
 venv
 __pycache__
-
-# smile cdr authentication token
-/api/token.json

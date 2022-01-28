@@ -11,7 +11,9 @@ from api.reader import Reader
 from api.tablebuilder import TableBuilder
 
 # change processing to when send event and not before sending
-# fix errors in backend
+# add switch to smile or pathling
+# kill a list immediately instead of having to wait
+# add upcoming list of maybe next 5 candidates
 
 s = sched.scheduler(time.time)
 
@@ -77,7 +79,7 @@ def stop_simulation(data):
 
 # start timer and send events to FHIR client
 def send_events(events):
-    url = "http://localhost:8080/fhir/"
+    url = "***REMOVED***/fhir_r4"
     emit("sendEvents", (len(events), calcTimelineDuration(events)))
     start_time = time.time()
     for i, event in enumerate(events):
