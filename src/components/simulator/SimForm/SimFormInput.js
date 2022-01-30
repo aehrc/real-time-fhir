@@ -2,9 +2,19 @@ import React from "react";
 import { Grid, Typography, Autocomplete, FormControl, TextField, InputAdornment } from "@mui/material";
 import resourceList from "../../assets/resources-synthea.json";
 
+import SimFormEndpointSwitcher from "./SimFormEndpointSwitcher"
+
 const SimulationFormInput = (props) => (
   <React.Fragment>
-    <Typography variant="h5">Simulator</Typography>
+
+    <Grid container>
+      <Grid item xs={6}>
+        <Typography variant="h5">Simulator</Typography>
+      </Grid>
+      <Grid item xs={6} container justifyContent="flex-end">
+        <SimFormEndpointSwitcher />
+      </Grid>
+    </Grid>
 
     <Grid container spacing={2} sx={{ mt: 1, mb: 3 }}>
       <Grid item xs={6}>

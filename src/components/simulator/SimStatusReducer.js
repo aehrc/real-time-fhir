@@ -1,6 +1,4 @@
-import React from 'react';
-
-const SimulationStatusReducer = (state, action) => {
+const simulationStatusReducer = (state, action) => {
     switch (action) {
       case "notRunning":
         return { statusCode: action, statusMsg: "Not running", startBtn: true, stopBtn: false, resetBtn: false };
@@ -21,4 +19,4 @@ const SimulationStatusReducer = (state, action) => {
     }
   };
 
-export default SimulationStatusReducer;
+export default simulationStatusReducer;

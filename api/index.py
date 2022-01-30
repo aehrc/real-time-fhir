@@ -11,8 +11,7 @@ from api.reader import Reader
 from api.tablebuilder import TableBuilder
 
 # change processing to when send event and not before sending
-# add switch to smile or pathling
-# kill a list immediately instead of having to wait
+# kill a list immediately instead of having to wait (last)
 # add upcoming list of maybe next 5 candidates
 
 s = sched.scheduler(time.time)
@@ -28,14 +27,17 @@ token = reader.request_token()
 gen = Generator(token)
 
 
+url_transaction = "***REMOVED***/fhir_r4"
+
+
 @app.route("/resources/<resource_type>")
 def find_resource(resource_type=None):
     # define url and GET resource payload
-    url = f"***REMOVED***/fhir_r4/{resource_type}"
+    url_get = f"***REMOVED***/fhir_r4/{resource_type}"
     url_params = request.query_string.decode("ascii")
     if len(url_params) > 1:
-        url += "?" + url_params
-    payload = reader.search_FHIR_data(url, token)
+        url_get += "?" + url_params
+    payload = reader.search_FHIR_data(url_get, token)
     error_msg = ""
 
     # return with error message if an error occured
@@ -43,7 +45,7 @@ def find_resource(resource_type=None):
         if payload["issue"][0]["severity"] == "error":
             return {
                 "title": "",
-                "url": url,
+                "url": url_get,
                 "headers": [],
                 "body": [],
                 "error": payload["issue"][0]["diagnostics"],
@@ -55,7 +57,7 @@ def find_resource(resource_type=None):
     data = data.tolist()
     return {
         "title": resource_type,
-        "url": url,
+        "url": url_get,
         "headers": headers,
         "body": data,
         "error": error_msg,
@@ -77,9 +79,14 @@ def stop_simulation(data):
     gen.reset_variables()
 
 
+@socketio.on("change_endpoint")
+def change_endpoint(data):
+    global url_transaction
+    url_transaction = data
+
+
 # start timer and send events to FHIR client
 def send_events(events):
-    url = "***REMOVED***/fhir_r4"
     emit("sendEvents", (len(events), calcTimelineDuration(events)))
     start_time = time.time()
     for i, event in enumerate(events):
@@ -87,7 +94,7 @@ def send_events(events):
             event["elapsed"],
             1,
             send_single_event,
-            argument=(event, url, start_time, i, len(events)),
+            argument=(event, url_transaction, start_time, i, len(events)),
         )
     s.run()
     print("Simulation stopped.")
@@ -116,6 +123,8 @@ def send_single_event(event, url, start_time, idx, num_of_events):
             has_error = False
 
     elapsed = time.time() - start_time
+    # add expected starting time (normed time)
+    # add actual finish exection time
     print(f"{idx+1}/{num_of_events}", event["elapsed"], elapsed, r.status_code)
     emit(
         "postBundle",
