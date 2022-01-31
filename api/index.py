@@ -10,9 +10,9 @@ from api.generator import Generator
 from api.reader import Reader
 from api.tablebuilder import TableBuilder
 
-# change processing to when send event and not before sending
-# kill a list immediately instead of having to wait (last)
+# kill a list immediately instead of having to wait (not possible)
 # space out events for the time taken to send a bundle to pathling
+# test pathling
 
 s = sched.scheduler(time.time)
 

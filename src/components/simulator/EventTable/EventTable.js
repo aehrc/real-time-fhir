@@ -2,7 +2,7 @@ import React from "react";
 import { Table, TableBody, TableContainer, TableHead, TableRow, TableCell, Paper } from "@mui/material";
 import { StyledTableRow, RegularCard } from "../../ComponentStyles";
 
-const tableHeaders = ["No.", "Resource", "Refs.", "References", "Timestamp", "Estimated (s)", "Elapsed (s)"];
+const tableHeaders = ["No.", "Resource", "Refs.", "References", "Timestamp", "Start estimate (s)", "Completed (s)"];
 const EventTable = (props) => (
   <RegularCard sx={{ my: 2.5 }}>
     <TableContainer component={Paper}>

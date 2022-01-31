@@ -89,7 +89,11 @@ function Simulation() {
       });
     });
 
-    return () => socket.disconnect();
+    return () => {
+      socket.emit("change_endpoint", "***REMOVED***/fhir_r4/");
+      socket.disconnect();
+
+    }
   }, []);
 
   return (
