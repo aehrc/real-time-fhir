@@ -2,7 +2,7 @@ import React from "react";
 import { Table, TableBody, TableContainer, TableHead, TableRow, TableCell, Paper } from "@mui/material";
 import { StyledTableRow, RegularCard } from "../../ComponentStyles";
 
-const tableHeaders = ["No.", "Resource", "Refs.", "References", "Timestamp", "Elapsed (s)", "Status"];
+const tableHeaders = ["No.", "Resource", "Refs.", "References", "Timestamp", "Estimated (s)", "Elapsed (s)"];
 const EventTable = (props) => (
   <RegularCard sx={{ my: 2.5 }}>
     <TableContainer component={Paper}>
@@ -32,8 +32,8 @@ function outputTableBody(props) {
         ))}
       </TableCell>
       <TableCell>{row.timestamp}</TableCell>
+      <TableCell>{row.estimated.toFixed(4)}</TableCell>
       <TableCell>{row.elapsed.toFixed(4)}</TableCell>
-      <TableCell>{row.status}</TableCell>
     </StyledTableRow>
   ));
 

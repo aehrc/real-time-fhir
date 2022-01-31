@@ -1,4 +1,4 @@
-const generateTableRow = (idx, bundle, timestamp, elapsed, status, total_events) => {
+const generateTableRow = (idx, bundle, timestamp, estimated, elapsed, total_events) => {
     const row = {
       eventNo: `${idx}/${total_events}`,
       resource: {
@@ -8,8 +8,8 @@ const generateTableRow = (idx, bundle, timestamp, elapsed, status, total_events)
       refCount: bundle.entry.length - 1,
       references: [],
       timestamp: timestamp,
+      estimated: estimated,
       elapsed: elapsed,
-      status: status,
     };
   
     for (let i = 1, len = bundle.entry.length; i < len; i++) {

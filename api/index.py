@@ -133,7 +133,7 @@ def send_single_event(event, url, start_time, idx, num_of_events, upcomingEvent)
     print(f"{idx+1}/{num_of_events}", event["expectedTime"], elapsed, r.status_code)
     emit(
         "postBundle",
-        (idx + 1, event["resource"], event["timestamp"], elapsed, r.status_code, upcomingEvent),
+        (idx + 1, event["resource"], event["timestamp"], event["expectedTime"], elapsed, upcomingEvent),
     )
 
     if r.status_code == 404 or r.status_code == 400 or r.status_code == 412:

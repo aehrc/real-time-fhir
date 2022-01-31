@@ -56,7 +56,7 @@ function Simulation() {
       statusDispatch("sendEvents");
     });
 
-    socket.on("postBundle", (idx, bundle, timestamp, elapsed, status, upcomingEvent) => {
+    socket.on("postBundle", (idx, bundle, timestamp, estimated, elapsed, upcomingEvent) => {
       let upcomingEvents = attributesRef.current.upcomingEvents;
       upcomingEvents.shift();
       if (upcomingEvent !== null) {
@@ -69,7 +69,7 @@ function Simulation() {
         upcomingEvents: upcomingEvents,
       });
 
-      const tableRow = generateTableRow(idx, bundle, timestamp, elapsed, status, attributesRef.current.totalEvents);
+      const tableRow = generateTableRow(idx, bundle, timestamp, estimated, elapsed, attributesRef.current.totalEvents);
       let tempTable = [tableRow, ...tableRef.current];
       if (tempTable.length > 30) {
         tempTable.pop();
