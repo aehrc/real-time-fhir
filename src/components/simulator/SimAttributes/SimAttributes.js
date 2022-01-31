@@ -5,6 +5,7 @@ import SimulationConstantAttributes from "./SimConstantAttributes";
 import Stopwatch from "./Stopwatch";
 import EventsSent from "./EventsSent";
 import SimulationStatus from "./SimStatus";
+import UpcomingEvents from "./UpcomingEvents";
 
 function SimulationAttributes(props) {
   const { attributes, status } = props;
@@ -89,25 +90,28 @@ function SimulationAttributes(props) {
 
   return (
     <React.Fragment>
-      <Grid item xs={7}>
-        <Grid container spacing={2}>
-          <Grid item xs={6}>
-            <SimulationStatus simulationStatus={simAttributes.simulationStatus} />
-          </Grid>
-
-          <Grid item xs={6}>
-            <SimulationConstantAttributes simAttributes={simAttributes} timelineFormatted={timelineFormatted} />
-          </Grid>
-        </Grid>
+      <Grid item xs={2}>
+        <SimulationStatus simulationStatus={simAttributes.simulationStatus} />
       </Grid>
 
-      <Grid item xs={2}>
+      <Grid item xs={3.25}>
+        <SimulationConstantAttributes simAttributes={simAttributes} timelineFormatted={timelineFormatted} />
+      </Grid>
+
+      <Grid item xs={1.5}>
+        <Stopwatch status={status} />
+      </Grid>
+
+      <Grid item xs={1.5}>
         <EventsSent eventsSent={attributes.eventsSent} totalEvents={attributes.totalEvents} />
       </Grid>
 
-      <Grid item xs={3}>
-        <Stopwatch status={status} />
+      <Grid item xs={3.5}>
+        <UpcomingEvents upcomingEvents={attributes.upcomingEvents}/>
       </Grid>
+
+
+      
     </React.Fragment>
   );
 }

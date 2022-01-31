@@ -11,11 +11,12 @@ import generateTableRow from "./EventTable/GenerateTableRow";
 const defaultAttributes = {
   resourceType: "Not Specified",
   duration: "0",
+  timelineDuration: "0",
+  durationMultiplier: "0",
   totalEvents: "0",
   eventsSent: "0",
   finalEventCount: "",
-  timelineDuration: "0",
-  durationMultiplier: "0",
+  upcomingEvents: [],
 };
 
 function Simulation() {
@@ -44,20 +45,28 @@ function Simulation() {
 
   // sockets receiving messages from backend
   useEffect(() => {
-    socket.on("sendEvents", (numOfEvents, timelineDuration) => {
+    socket.on("sendEvents", (numOfEvents, timelineDuration, upcomingEvents) => {
       setAttributes({
         ...attributesRef.current,
-        totalEvents: numOfEvents,
         timelineDuration: timelineDuration,
         durationMultiplier: `${timelineDuration / attributesRef.current.duration}`,
+        totalEvents: numOfEvents,
+        upcomingEvents: upcomingEvents,
       });
       statusDispatch("sendEvents");
     });
 
-    socket.on("postBundle", (idx, bundle, timestamp, elapsed, status) => {
+    socket.on("postBundle", (idx, bundle, timestamp, elapsed, status, upcomingEvent) => {
+      let upcomingEvents = attributesRef.current.upcomingEvents;
+      upcomingEvents.shift();
+      if (upcomingEvent !== null) {
+        upcomingEvents.push(upcomingEvent);
+      }
+
       setAttributes({
         ...attributesRef.current,
         eventsSent: idx,
+        upcomingEvents: upcomingEvents,
       });
 
       const tableRow = generateTableRow(idx, bundle, timestamp, elapsed, status, attributesRef.current.totalEvents);

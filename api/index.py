@@ -12,7 +12,7 @@ from api.tablebuilder import TableBuilder
 
 # change processing to when send event and not before sending
 # kill a list immediately instead of having to wait (last)
-# add upcoming list of maybe next 5 candidates
+# space out events for the time taken to send a bundle to pathling
 
 s = sched.scheduler(time.time)
 
@@ -87,14 +87,19 @@ def change_endpoint(data):
 
 # start timer and send events to FHIR client
 def send_events(events):
-    emit("sendEvents", (len(events), calcTimelineDuration(events)))
+    emit(
+        "sendEvents",
+        (len(events), calcTimelineDuration(events), getUpcomingEvents(events)),
+    )
     start_time = time.time()
     for i, event in enumerate(events):
+        upcomingEvent = getUpcomingEvent(events[i + 3]) if i + 3 < len(events) else None
+
         s.enter(
-            event["elapsed"],
+            event["expectedTime"],
             1,
             send_single_event,
-            argument=(event, url_transaction, start_time, i, len(events)),
+            argument=(event, url_transaction, start_time, i, len(events), upcomingEvent),
         )
     s.run()
     print("Simulation stopped.")
@@ -102,7 +107,7 @@ def send_events(events):
 
 
 # function for sending single event
-def send_single_event(event, url, start_time, idx, num_of_events):
+def send_single_event(event, url, start_time, idx, num_of_events, upcomingEvent):
     try:
         r = requests.post(
             url,
@@ -125,10 +130,10 @@ def send_single_event(event, url, start_time, idx, num_of_events):
     elapsed = time.time() - start_time
     # add expected starting time (normed time)
     # add actual finish exection time
-    print(f"{idx+1}/{num_of_events}", event["elapsed"], elapsed, r.status_code)
+    print(f"{idx+1}/{num_of_events}", event["expectedTime"], elapsed, r.status_code)
     emit(
         "postBundle",
-        (idx + 1, event["resource"], event["timestamp"], elapsed, r.status_code),
+        (idx + 1, event["resource"], event["timestamp"], elapsed, r.status_code, upcomingEvent),
     )
 
     if r.status_code == 404 or r.status_code == 400 or r.status_code == 412:
@@ -139,6 +144,19 @@ def calcTimelineDuration(events):
     last_timestamp = datetime.fromisoformat(events[-1]["timestamp"])
     first_timestamp = datetime.fromisoformat(events[0]["timestamp"])
     return abs((last_timestamp - first_timestamp).total_seconds())
+
+
+def getUpcomingEvent(event):
+    return {
+        "id": event["resource"]["entry"][0]["resource"]["id"],
+        "expectedTime": event["expectedTime"],
+    }
+
+
+def getUpcomingEvents(events):
+    upcoming_events = events[:3] if len(events) >= 3 else events[: len(events)]
+    
+    return [getUpcomingEvent(event) for event in upcoming_events]
 
 
 if __name__ == "__main__":

@@ -18,7 +18,7 @@ class Generator:
         self.duration = 0
         self.resource_type = None
 
-    # generate normalized and sorted (elapsed, FHIR resource) key-value pairs
+    # generate normalized and sorted (expectedTime, FHIR resource) key-value pairs
     def generate_events(self):
         # read resources and create event timestamps for each event
         src_path = f"./input/{self.resource_type}.ndjson"
@@ -28,25 +28,25 @@ class Generator:
                 {
                     "resource": build_single_bundle(line),
                     "timestamp": timestamps[i],
-                    "elapsed": datetime.fromisoformat(timestamps[i]).timestamp(),
+                    "expectedTime": datetime.fromisoformat(timestamps[i]).timestamp(),
                 }
                 for i, line in enumerate(infile)
             ]
-        return normalize_elapsed(
-            sorted(events, key=lambda d: d["elapsed"]), self.duration
+        return normalize_expected_time(
+            sorted(events, key=lambda d: d["expectedTime"]), self.duration
         )
 
 
 ### helper functions for generating events
 # normalize events by defined duration e.g. 300s
-def normalize_elapsed(events, duration):
-    range = events[-1]["elapsed"] - events[0]["elapsed"]
+def normalize_expected_time(events, duration):
+    range = events[-1]["expectedTime"] - events[0]["expectedTime"]
     if range == 0:
         range = 1
-    min = events[0]["elapsed"]
+    min = events[0]["expectedTime"]
 
     for event in events:
-        event["elapsed"] = (event["elapsed"] - min) / range * duration
+        event["expectedTime"] = (event["expectedTime"] - min) / range * duration
     return events
 
 

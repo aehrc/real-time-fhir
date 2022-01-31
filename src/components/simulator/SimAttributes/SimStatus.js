@@ -1,6 +1,6 @@
 import React from "react";
-import { CardContent, Typography } from "@mui/material";
-import { CardHeadingTypography, FullHeightCard } from "../../ComponentStyles";
+import { CardContent } from "@mui/material";
+import { CardHeadingTypography, CardContentMediumTypography, FullHeightCard } from "../../ComponentStyles";
 import { HourglassBottom } from "@mui/icons-material";
 
 function SimulationStatus(props) {
@@ -11,9 +11,9 @@ function SimulationStatus(props) {
           {props.simulationStatus.label}
           <HourglassBottom sx={{ ml: 0.5 }} />
         </CardHeadingTypography>
-        <Typography sx={{ fontSize: 40 }} color="text.secondary">
+        <CardContentMediumTypography color="text.secondary">
           {props.simulationStatus.value}
-        </Typography>
+        </CardContentMediumTypography>
       </CardContent>
     </FullHeightCard>
   );

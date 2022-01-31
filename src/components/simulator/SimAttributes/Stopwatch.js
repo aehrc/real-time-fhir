@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { CardContent, Typography } from "@mui/material";
+import { CardContent } from "@mui/material";
 import { Timer } from "@mui/icons-material";
-import { CardHeadingTypography, FullHeightCard } from "../../ComponentStyles";
+import { CardHeadingTypography, CardContentMediumTypography, FullHeightCard } from "../../ComponentStyles";
 
 function Stopwatch(props) {
   const [time, setTime] = useState(0);
@@ -51,10 +51,10 @@ function Stopwatch(props) {
           Time Elapsed
           <Timer sx={{ ml: 0.5 }} />
         </CardHeadingTypography>
-        <Typography sx={{ fontSize: 68, textAlign: "center" }} color="text.secondary">
+        <CardContentMediumTypography color="text.secondary">
           {("0" + Math.floor((time / 60000) % 60)).slice(-2)}:{("0" + Math.floor((time / 1000) % 60)).slice(-2)}:
           {("0" + ((time / 10) % 100)).slice(-2)}
-        </Typography>
+        </CardContentMediumTypography>
       </CardContent>
     </FullHeightCard>
   );

@@ -2,10 +2,18 @@ import { styled } from "@mui/material/styles";
 import { Typography, TableRow, Card } from "@mui/material";
 
 export const CardHeadingTypography = styled(Typography)(({ theme }) => ({
-  fontSize: 18,
+  fontSize: 16,
   display: "flex",
   alignItems: "center",
   flexWrap: "wrap",
+}));
+
+export const CardContentMediumTypography = styled(Typography)(({ theme }) => ({
+  fontSize: 24
+}));
+
+export const CardContentSmallTypography = styled(Typography)(({ theme }) => ({
+  fontSize: 14
 }));
 
 export const StyledTableRow = styled(TableRow)(({ theme }) => ({
