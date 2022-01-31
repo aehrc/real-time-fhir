@@ -108,6 +108,7 @@ def send_events(events):
 
 # function for sending single event
 def send_single_event(event, url, start_time, idx, num_of_events, upcomingEvent):
+    start_elapsed = time.time() - start_time
     try:
         r = requests.post(
             url,
@@ -127,13 +128,13 @@ def send_single_event(event, url, start_time, idx, num_of_events, upcomingEvent)
             )
             has_error = False
 
-    elapsed = time.time() - start_time
+    completion_elapsed = time.time() - start_time
     # add expected starting time (normed time)
     # add actual finish exection time
-    print(f"{idx+1}/{num_of_events}", event["expectedTime"], elapsed, r.status_code)
+    print(f"{idx+1}/{num_of_events}", event["expectedTime"], start_elapsed, completion_elapsed, r.status_code)
     emit(
         "postBundle",
-        (idx + 1, event["resource"], event["timestamp"], event["expectedTime"], elapsed, upcomingEvent),
+        (idx + 1, event["resource"], event["timestamp"], event["expectedTime"], start_elapsed, completion_elapsed, upcomingEvent),
     )
 
     if r.status_code == 404 or r.status_code == 400 or r.status_code == 412:
