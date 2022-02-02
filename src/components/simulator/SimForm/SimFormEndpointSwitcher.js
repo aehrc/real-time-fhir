@@ -1,33 +1,74 @@
-import React, { useState} from 'react';
-import { Typography, Stack, Box } from '@mui/material';
+import React, { useState, useEffect, useRef } from 'react';
+import { Typography, Stack, Box, Snackbar, IconButton } from '@mui/material';
+import { Close } from '@mui/icons-material';
 import Switch from '@mui/material/Switch';
 import { socket } from "../../../App";
 
 const defaultEndpoint = {
 	name: "AEHRC CDR",
 	url: "***REMOVED***/fhir_r4/",
+	message: ""
 };
 
 function SimFormEndpointSwitcher() {
 
 	const [endpoint, setEndpoint] = useState(defaultEndpoint);
+	const endpointRef = useRef(defaultEndpoint);
+	endpointRef.current = endpoint;
+
+	const [openNotification, setOpenNotification] = useState(false);
+
+	useEffect(() => {
+		socket.on("endpointStatus", (data) => {
+			setOpenNotification(true)
+			let message = (data.status) ? `Connection to ${data.url} successful.` : `Connection to ${data.url} failed.`
+			setEndpoint({ ...endpointRef.current, message: message })
+		});
+	}, []);
 
 	const handleSwitchChange = (event) => {
 		let endpoint = (event.target.checked) ? { name: "Pathling", url: "http://localhost:8080/fhir/" } : defaultEndpoint
-		
+
 		setEndpoint(endpoint)
-    socket.emit("change_endpoint", endpoint.url);
+		socket.emit("change_endpoint", endpoint.url);
 	};
+
+	const handleCloseNotification = (event, reason) => {
+		if (reason === 'clickaway') {
+			return;
+		}
+		setOpenNotification(false);
+	}
+
+	const notification = (
+		<React.Fragment>
+			<IconButton
+				size="small"
+				color="inherit"
+				onClick={handleCloseNotification}
+			>
+				<Close fontSize="small" />
+			</IconButton>
+		</React.Fragment>
+	);
 
 	return (
 		<React.Fragment>
 			<Stack direction="row" alignItems="center">
-				<Switch onChange={handleSwitchChange}/>
+				<Switch onChange={handleSwitchChange} />
 				<Box sx={{ width: 85, textAlign: "center" }}>
 					<Typography sx={{ fontSize: 15 }} color="text.secondary">{endpoint.name}</Typography>
 				</Box>
 			</Stack>
-		</React.Fragment >
+			<Snackbar
+				open={openNotification}
+				autoHideDuration={4500}
+				onClose={handleCloseNotification}
+				message={endpointRef.current.message}
+				color="inherit"
+				action={notification}
+			/>
+		</React.Fragment>
 	);
 }
 

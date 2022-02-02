@@ -106,7 +106,7 @@ function SimulationAttributes(props) {
         <EventsSent eventsSent={attributes.eventsSent} totalEvents={attributes.totalEvents} />
       </Grid>
 
-      <Grid item xs={3.5}>
+      <Grid item xs={3.75}>
         <UpcomingEvents upcomingEvents={attributes.upcomingEvents}/>
       </Grid>
 

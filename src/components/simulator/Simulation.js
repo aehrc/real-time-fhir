@@ -20,7 +20,7 @@ const defaultAttributes = {
 };
 
 function Simulation() {
-  // Form, Attributes and Table states
+  // Form, Attributes, Table and Endpoint states
   const [form, setForm] = useState({
     resourceType: "DiagnosticReport",
     duration: 60,
@@ -87,6 +87,10 @@ function Simulation() {
         ...attributesRef.current,
         finalEventCount: `${attributesRef.current.eventsSent}/${attributesRef.current.totalEvents}`,
       });
+    });
+
+    socket.on("endpointStatus", (data) => {
+
     });
 
     return () => {

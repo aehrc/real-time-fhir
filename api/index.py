@@ -84,9 +84,37 @@ def change_endpoint(data):
     global url_transaction
     url_transaction = data
 
+    try:
+        r = requests.get(url_transaction + "Patient?_count=1")
+    except: 
+        emit("endpointStatus", {"url": url_transaction, "status": False})
+        return
+
+    emit("endpointStatus", {"url": url_transaction, "status": True})
+
+
+@socketio.on("estimate_simulation")
+def estimate_simulation(data):
+    gen.set_rtype_and_duration(data["rtype"], data["duration"])
+    events = gen.generate_events()
+    num_of_entries = get_num_of_entries(events)
+    print(url_transaction)
+    #TODO estimate based on number of entries
+
+
+def get_num_of_entries(events):
+    count = 0
+    for event in events:
+        for entry in event['resource']['entry']:
+            count += 1
+    return count
+
 
 # start timer and send events to FHIR client
 def send_events(events):
+    get_num_of_entries(events)
+    print(url_transaction)
+
     emit(
         "sendEvents",
         (len(events), calcTimelineDuration(events), getUpcomingEvents(events)),
@@ -131,7 +159,8 @@ def send_single_event(event, url, start_time, idx, num_of_events, upcomingEvent)
     completion_elapsed = time.time() - start_time
     # add expected starting time (normed time)
     # add actual finish exection time
-    print(f"{idx+1}/{num_of_events}", event["expectedTime"], start_elapsed, completion_elapsed, r.status_code)
+    print(f"{idx+1}/{num_of_events}", event["expectedTime"], start_elapsed, completion_elapsed, completion_elapsed-start_elapsed, r.status_code)
+    
     emit(
         "postBundle",
         (idx + 1, event["resource"], event["timestamp"], event["expectedTime"], start_elapsed, completion_elapsed, upcomingEvent),
