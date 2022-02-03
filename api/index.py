@@ -100,6 +100,10 @@ def estimate_simulation(data):
     num_of_entries = get_num_of_entries(events)
     print(url_transaction)
     #TODO estimate based on number of entries
+    # fix table
+    # fix aehrc button switcher to showpathling text
+    # fix dispatch pathling and disable it
+    # use delta instead of append https://docs.delta.io/latest/delta-batch.html#append
 
 
 def get_num_of_entries(events):

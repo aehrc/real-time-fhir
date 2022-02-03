@@ -10,7 +10,7 @@ const defaultEndpoint = {
 	message: ""
 };
 
-function SimFormEndpointSwitcher() {
+function SimFormEndpointSwitcher(props) {
 
 	const [endpoint, setEndpoint] = useState(defaultEndpoint);
 	const endpointRef = useRef(defaultEndpoint);
@@ -27,7 +27,8 @@ function SimFormEndpointSwitcher() {
 	}, []);
 
 	const handleSwitchChange = (event) => {
-		let endpoint = (event.target.checked) ? { name: "Pathling", url: "http://localhost:8080/fhir/" } : defaultEndpoint
+		handleCloseNotification()
+		let endpoint = (event.target.checked) ? { name: "Pathling", url: "http://localhost:8080/fhir/", message: endpointRef.current.message } : defaultEndpoint
 
 		setEndpoint(endpoint)
 		socket.emit("change_endpoint", endpoint.url);
@@ -55,7 +56,7 @@ function SimFormEndpointSwitcher() {
 	return (
 		<React.Fragment>
 			<Stack direction="row" alignItems="center">
-				<Switch onChange={handleSwitchChange} />
+				<Switch onChange={handleSwitchChange} disabled={!props.statusState.startBtn}/>
 				<Box sx={{ width: 85, textAlign: "center" }}>
 					<Typography sx={{ fontSize: 15 }} color="text.secondary">{endpoint.name}</Typography>
 				</Box>
@@ -65,7 +66,6 @@ function SimFormEndpointSwitcher() {
 				autoHideDuration={4500}
 				onClose={handleCloseNotification}
 				message={endpointRef.current.message}
-				color="inherit"
 				action={notification}
 			/>
 		</React.Fragment>
