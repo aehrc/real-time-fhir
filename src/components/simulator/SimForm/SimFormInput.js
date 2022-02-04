@@ -1,11 +1,9 @@
 import React from "react";
-import { Grid, Typography, Autocomplete, FormControl, TextField, InputAdornment } from "@mui/material";
+import { Grid, Autocomplete, FormControl, TextField, InputAdornment } from "@mui/material";
 import resourceList from "../../assets/resources-synthea.json";
 
 const SimulationFormInput = (props) => (
   <React.Fragment>
-    <Typography variant="h5">Simulator</Typography>
-
     <Grid container spacing={2} sx={{ mt: 1, mb: 3 }}>
       <Grid item xs={6}>
         <FormControl fullWidth>

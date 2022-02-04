@@ -1,7 +1,7 @@
 import React from "react";
-import { CardContent, Typography } from "@mui/material";
-import { Task } from "@mui/icons-material";
-import { CardHeadingTypography, FullHeightCard } from "../../ComponentStyles";
+import { CardContent } from "@mui/material";
+import { AssignmentTurnedIn } from "@mui/icons-material";
+import { CardHeadingTypography, CardContentMediumTypography, FullHeightCard } from "../../ComponentStyles";
 
 function EventsSent(props) {
   return (
@@ -9,11 +9,11 @@ function EventsSent(props) {
       <CardContent>
         <CardHeadingTypography>
           Events Sent
-          <Task sx={{ ml: 0.5 }} />
+          <AssignmentTurnedIn sx={{ ml: 0.5 }} />
         </CardHeadingTypography>
-        <Typography sx={{ fontSize: 40 }} color="text.secondary">
+        <CardContentMediumTypography color="text.secondary">
           {props.eventsSent}/{props.totalEvents}
-        </Typography>
+        </CardContentMediumTypography>
       </CardContent>
     </FullHeightCard>
   );

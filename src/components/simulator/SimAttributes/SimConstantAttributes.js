@@ -1,6 +1,6 @@
 import React from "react";
 import { Grid, CardContent, Typography } from "@mui/material";
-import { CardHeadingTypography, RegularCard } from "../../ComponentStyles";
+import { CardHeadingTypography, CardContentSmallTypography, RegularCard } from "../../ComponentStyles";
 
 function SimulationConstantAttributes(props) {
   const { simAttributes, timelineFormatted } = props;
@@ -13,9 +13,9 @@ function SimulationConstantAttributes(props) {
               <CardContent>
                 <CardHeadingTypography>{attribute.label}</CardHeadingTypography>
 
-                <Typography sx={{ fontSize: 16 }} color="text.secondary">
+                <CardContentSmallTypography color="text.secondary">
                   {attribute.value}
-                </Typography>
+                </CardContentSmallTypography>
               </CardContent>
             </RegularCard>
           </Grid>

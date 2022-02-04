@@ -3,41 +3,24 @@ import { Grid } from "@mui/material";
 import { socket } from "../../App";
 import SimulationForm from "./SimForm/SimForm";
 import SimulationAttributes from "./SimAttributes/SimAttributes";
-import EventTable from "./EventTable";
+import EventTable from "./EventTable/EventTable";
+
+import simulationStatusReducer from "./SimStatusReducer";
+import generateTableRow from "./EventTable/GenerateTableRow";
 
 const defaultAttributes = {
   resourceType: "Not Specified",
   duration: "0",
+  timelineDuration: "0",
+  durationMultiplier: "0",
   totalEvents: "0",
   eventsSent: "0",
   finalEventCount: "",
-  timelineDuration: "0",
-  durationMultiplier: "0",
-};
-
-const statusReducer = (state, action) => {
-  switch (action) {
-    case "notRunning":
-      return { statusCode: action, statusMsg: "Not running", startBtn: true, stopBtn: false, resetBtn: false };
-    case "startSimulation":
-      return { statusCode: action, statusMsg: "Generating events", startBtn: false, stopBtn: false, resetBtn: false };
-    case "sendEvents":
-      return { statusCode: action, statusMsg: "Sending events", startBtn: false, stopBtn: true, resetBtn: false };
-    case "stopSimulation":
-      return { statusCode: action, statusMsg: "Stopping", startBtn: false, stopBtn: false, resetBtn: false };
-    case "simulationStopped":
-      return { statusCode: action, statusMsg: "Ended early", startBtn: true, stopBtn: false, resetBtn: true };
-    case "simulationComplete":
-      return { statusCode: action, statusMsg: "Completed", startBtn: true, stopBtn: false, resetBtn: true };
-    case "resetSimulation":
-      return { statusCode: action, statusMsg: "Not running", startBtn: true, stopBtn: false, resetBtn: false };
-    default:
-      return state;
-  }
+  upcomingEvents: [],
 };
 
 function Simulation() {
-  // Form, Attributes and Table states
+  // Form, Attributes, Table and Endpoint states
   const [form, setForm] = useState({
     resourceType: "DiagnosticReport",
     duration: 60,
@@ -52,7 +35,7 @@ function Simulation() {
   tableRef.current = table;
 
   // Simulation Status reducer
-  const [status, statusDispatch] = useReducer(statusReducer, {
+  const [status, statusDispatch] = useReducer(simulationStatusReducer, {
     statusCode: "notRunning",
     statusMsg: "Not running",
     startBtn: true,
@@ -62,23 +45,31 @@ function Simulation() {
 
   // sockets receiving messages from backend
   useEffect(() => {
-    socket.on("sendEvents", (numOfEvents, timelineDuration) => {
+    socket.on("sendEvents", (numOfEvents, timelineDuration, upcomingEvents) => {
       setAttributes({
         ...attributesRef.current,
-        totalEvents: numOfEvents,
         timelineDuration: timelineDuration,
         durationMultiplier: `${timelineDuration / attributesRef.current.duration}`,
+        totalEvents: numOfEvents,
+        upcomingEvents: upcomingEvents,
       });
       statusDispatch("sendEvents");
     });
 
-    socket.on("postBundle", (idx, bundle, timestamp, elapsed, status) => {
+    socket.on("postBundle", (idx, bundle, timestamp, estimated, start_elapsed, completion_elapsed, upcomingEvent) => {
+      let upcomingEvents = attributesRef.current.upcomingEvents;
+      upcomingEvents.shift();
+      if (upcomingEvent !== null) {
+        upcomingEvents.push(upcomingEvent);
+      }
+
       setAttributes({
         ...attributesRef.current,
         eventsSent: idx,
+        upcomingEvents: upcomingEvents,
       });
 
-      const tableRow = generateRow(idx, bundle, timestamp, elapsed, status, attributesRef.current.totalEvents);
+      const tableRow = generateTableRow(idx, bundle, timestamp, estimated, start_elapsed, completion_elapsed, attributesRef.current.totalEvents);
       let tempTable = [tableRow, ...tableRef.current];
       if (tempTable.length > 30) {
         tempTable.pop();
@@ -98,7 +89,15 @@ function Simulation() {
       });
     });
 
-    return () => socket.disconnect();
+    socket.on("endpointStatus", (data) => {
+
+    });
+
+    return () => {
+      socket.emit("change_endpoint", "***REMOVED***/fhir_r4/");
+      socket.disconnect();
+
+    }
   }, []);
 
   return (
@@ -129,28 +128,5 @@ function Simulation() {
     </React.Fragment>
   );
 }
-
-const generateRow = (idx, bundle, timestamp, elapsed, status, total_events) => {
-  const row = {
-    eventNo: `${idx}/${total_events}`,
-    resource: {
-      type: bundle.entry[0].resource.resourceType,
-      id: bundle.entry[0].resource.id,
-    },
-    refCount: bundle.entry.length - 1,
-    references: [],
-    timestamp: timestamp,
-    elapsed: elapsed,
-    status: status,
-  };
-
-  for (let i = 1, len = bundle.entry.length; i < len; i++) {
-    row.references.push({
-      type: bundle.entry[i].resource.resourceType,
-      id: bundle.entry[i].resource.id,
-    });
-  }
-  return row;
-};
 
 export default Simulation;
