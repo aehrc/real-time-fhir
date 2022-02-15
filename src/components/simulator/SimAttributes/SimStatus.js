@@ -11,9 +11,8 @@ function SimulationStatus(props) {
           {props.simulationStatus.label}
           <HourglassBottom sx={{ ml: 0.5 }} />
         </CardHeadingTypography>
-        <CardContentMediumTypography color="text.secondary">
-          {props.simulationStatus.value}
-        </CardContentMediumTypography>
+        
+        <CardContentMediumTypography color="text.secondary">{props.simulationStatus.value}</CardContentMediumTypography>
       </CardContent>
     </FullHeightCard>
   );

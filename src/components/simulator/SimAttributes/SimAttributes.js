@@ -9,6 +9,8 @@ import UpcomingEvents from "./UpcomingEvents";
 
 function SimulationAttributes(props) {
   const { attributes, status } = props;
+
+  // Build Attributes object from props
   const propsAttributes = {
     simulationStatus: { label: "Simulation Status", value: `${status.statusMsg} ${attributes.finalEventCount}` },
     resourceType: { label: "Resource Type", value: attributes.resourceType },
@@ -107,11 +109,8 @@ function SimulationAttributes(props) {
       </Grid>
 
       <Grid item xs={3.75}>
-        <UpcomingEvents upcomingEvents={attributes.upcomingEvents}/>
+        <UpcomingEvents upcomingEvents={attributes.upcomingEvents} />
       </Grid>
-
-
-      
     </React.Fragment>
   );
 }

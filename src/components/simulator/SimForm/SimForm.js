@@ -3,7 +3,7 @@ import { CardContent, Grid, Typography } from "@mui/material";
 import { RegularCard } from "../../ComponentStyles";
 import SimulationFormInput from "./SimFormInput";
 import SimulationFormButtons from "./SimFormButtons";
-import SimFormEndpointSwitcher from "./SimFormEndpointSwitcher"
+import SimFormEndpointSwitcher from "./SimFormEndpointSwitcher";
 
 const SimulationForm = (props) => (
   <RegularCard sx={{ my: 2.5 }}>
@@ -13,7 +13,7 @@ const SimulationForm = (props) => (
           <Typography variant="h5">Simulator</Typography>
         </Grid>
         <Grid item xs={6} container justifyContent="flex-end">
-          <SimFormEndpointSwitcher statusState={props.statusState}/>
+          <SimFormEndpointSwitcher statusState={props.statusState} />
         </Grid>
       </Grid>
 

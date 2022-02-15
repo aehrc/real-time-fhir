@@ -1,12 +1,17 @@
 import json
 import requests
 
-# Get access token and resources via GET from FHIR client
 class Reader:
-    # test old token validity and auto renews token
+    """
+    A class for reading resources via GET from FHIR endpoint and validating tokens
+    """
     def request_token(self):
-        # read old token from file
-        # with open('./dashapp/event/token.json', 'r') as infile:
+        """
+        Ensures the current aurthorization token is valid, requests new token if necessary
+
+        :return: Valid authorization token in str
+        """
+        # Read old token from file
         with open("./token.json", "r") as infile:
             token = json.load(infile)["access_token"]
 
@@ -15,7 +20,7 @@ class Reader:
             headers={"Authorization": "Bearer " + token},
         )
 
-        # request new token if token expired
+        # Request new token if token expired
         if r.status_code == 401:
             data = {
                 "grant_type": "client_credentials",
@@ -26,18 +31,21 @@ class Reader:
             jwt = r.json()
             token = jwt["access_token"]
 
-            # write new token to file
+            # Write new token to file
             with open("./token.json", "w") as outfile:
                 print("Authentication token renewed.")
                 json.dump(jwt, outfile)
+
         return token
 
-    # search and GET FHIR data based on url
+    # Search and GET FHIR data based on url
     def search_FHIR_data(self, url, token):
         r = requests.get(url, headers={"Authorization": "Bearer " + token})
-        print(url, r.status_code)
 
-        # refresh token if auth error occurs
+        # Refresh token if auth error occurs
         if str(r.status_code) == "401":
-            r = requests.get(url, headers={"Authorization": "Bearer " + self.request_token()})
+            r = requests.get(
+                url, headers={"Authorization": "Bearer " + self.request_token()}
+            )
+
         return r.json()

@@ -1,8 +1,8 @@
 import React from "react";
 import { CardContent, Typography, Grid, Button, TextField, FormControl, Autocomplete } from "@mui/material";
 import { CloudDownload } from "@mui/icons-material";
-import resourceList from "../assets/resources-synthea.json";
 import { RegularCard } from "../ComponentStyles";
+import resourceList from "../assets/resources-synthea.json";
 
 function ResourceForm(props) {
   const { resourceUrlState, setResourceUrl, fetchButton, setFetchButton, tableState, setTable } = props;

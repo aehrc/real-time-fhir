@@ -7,6 +7,7 @@ function Stopwatch(props) {
   const [time, setTime] = useState(0);
   const [running, setRunning] = useState(false);
 
+  // Update stopwatch time
   useEffect(() => {
     let interval;
     if (running) {
@@ -21,6 +22,7 @@ function Stopwatch(props) {
     return () => clearInterval(interval);
   }, [running]);
 
+  // Set stopwatch status 
   useEffect(() => {
     const status = props.status.statusCode;
     switch (status) {
@@ -51,6 +53,7 @@ function Stopwatch(props) {
           Time Elapsed
           <Timer sx={{ ml: 0.5 }} />
         </CardHeadingTypography>
+        
         <CardContentMediumTypography color="text.secondary">
           {("0" + Math.floor((time / 60000) % 60)).slice(-2)}:{("0" + Math.floor((time / 1000) % 60)).slice(-2)}:
           {("0" + ((time / 10) % 100)).slice(-2)}

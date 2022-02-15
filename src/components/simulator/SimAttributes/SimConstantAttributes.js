@@ -1,5 +1,5 @@
 import React from "react";
-import { Grid, CardContent, Typography } from "@mui/material";
+import { Grid, CardContent } from "@mui/material";
 import { CardHeadingTypography, CardContentSmallTypography, RegularCard } from "../../ComponentStyles";
 
 function SimulationConstantAttributes(props) {
@@ -12,10 +12,8 @@ function SimulationConstantAttributes(props) {
             <RegularCard>
               <CardContent>
                 <CardHeadingTypography>{attribute.label}</CardHeadingTypography>
-
-                <CardContentSmallTypography color="text.secondary">
-                  {attribute.value}
-                </CardContentSmallTypography>
+                
+                <CardContentSmallTypography color="text.secondary">{attribute.value}</CardContentSmallTypography>
               </CardContent>
             </RegularCard>
           </Grid>
