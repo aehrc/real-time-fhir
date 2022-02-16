@@ -1,5 +1,6 @@
-import logging
 import sched
+import logging
+import os
 import time
 import requests
 from flask import Flask, request
@@ -9,6 +10,7 @@ from api.generator import Generator
 from api.reader import Reader
 from api.tablebuilder import TableBuilder
 from api.eventhelper import EventHelper
+from api.requester import Requester
 
 # Init scheduler
 s = sched.scheduler(time.time)
@@ -20,13 +22,19 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 log = logging.getLogger("werkzeug")
 log.setLevel(logging.ERROR)
 
-# Init Reader and Generator and refresh token
+# Init api classes
 reader = Reader()
-token = reader.request_token()
-gen = Generator(token)
+requester = Requester()
+gen = Generator()
 event_helper = EventHelper()
 
-url_post_bundle = "***REMOVED***/fhir_r4"
+
+url_endpoint = os.environ.get("ENDPOINT_URL")
+if url_endpoint == None:
+    print("Endpoint not configured. Configure endpoint url as a environment variable before usage.")
+    exit()
+else:
+    print("Endpoint configured as", url_endpoint)
 
 ### Resource page functions
 @app.route("/resources/<resource_type>")
@@ -42,7 +50,7 @@ def find_resource(resource_type=None):
     url_params = request.query_string.decode("ascii")
     if len(url_params) > 1:
         url_get += "?" + url_params
-    payload = reader.search_FHIR_data(url_get, token)
+    payload = reader.search_FHIR_data(url_get)
 
     # Return with error message if an error occured
     if payload["resourceType"] == "OperationOutcome":
@@ -171,22 +179,12 @@ def send_single_event(event, url, start_time, idx, upcomingEvent):
 
     # Attempt to send bundle, keep retrying if an error occurs
     try:
-        r = requests.post(
-            url,
-            json=event["resource"],
-            headers={"Authorization": "Bearer " + token},
-            timeout=90,
-        )
+        r = requester.post_bundle(url, event["resource"])
     except:
         has_error = True
         while has_error:
             print("An error occured, retrying...")
-            r = requests.post(
-                url,
-                json=event["resource"],
-                headers={"Authorization": "Bearer " + token},
-                timeout=90,
-            )
+            r = requester.post_bundle(url, event["resource"])
             has_error = False
 
     completion_elapsed = time.time() - start_time

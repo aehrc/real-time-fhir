@@ -25,3 +25,5 @@ yarn-error.log*
 # python api venv & pycache
 venv
 __pycache__
+
+.env

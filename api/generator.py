@@ -8,10 +8,9 @@ class Generator:
     A class to perform processing of event generation
     """
 
-    def __init__(self, token):
+    def __init__(self):
         self.duration = 0
         self.resource_type = None
-        self.token = token
 
     def set_rtype_and_duration(self, resource_type, duration):
         """
