@@ -88,6 +88,7 @@ def start_simulation(data):
     list(map(s.cancel, s.queue))
 
     gen.set_rtype_and_duration(data["rtype"], data["duration"])
+    print("\nSimulation started.\nResource Type:", data["rtype"], "  Duration:", data["duration"])
     events = gen.generate_events()
 
     send_events(events)
@@ -104,24 +105,21 @@ def stop_simulation():
     gen.reset_variables()
 
 
-@socketio.on("change_endpoint")
-def change_endpoint(url):
+@socketio.on("verify_endpoint")
+def verify_endpoint():
     """
-    Change the endpoint for bundle posting
+    Verify the endpoint for bundle posting
 
     :param url: Endpoint url
     """
-    global url_post_bundle
-    url_post_bundle = url
-
     # Attempt a request to check if server is alive
     try:
-        r = requests.get(url_post_bundle + "Patient?_count=1")
+        r = requests.get(url_endpoint + "Patient?_count=1")
     except:
-        emit("endpointStatus", {"url": url_post_bundle, "status": False})
+        emit("endpointStatus", {"url": url_endpoint, "status": False})
         return
 
-    emit("endpointStatus", {"url": url_post_bundle, "status": True})
+    emit("endpointStatus", {"url": url_endpoint, "status": True})
 
 
 def send_events(events):
@@ -145,7 +143,7 @@ def send_events(events):
     # Schedule events
     for i, event in enumerate(events):
         # Get upcoming event with an offset of 3 from current event
-        upcomingEvent = (
+        upcoming_event = (
             event_helper.get_upcoming_event(events[i + 3])
             if i + 3 < len(events)
             else None
@@ -156,15 +154,16 @@ def send_events(events):
             event["expectedTime"],
             1,
             send_single_event,
-            argument=(event, url_post_bundle, start_time, i, upcomingEvent),
+            argument=(event, url_endpoint, start_time, i, len(events), upcoming_event),
         )
     s.run()
 
     # End simulation
+    print("Simulation stopped.")
     emit("simulationEnd", True)
 
 
-def send_single_event(event, url, start_time, idx, upcomingEvent):
+def send_single_event(event, url, start_time, idx, num_of_events, upcoming_event):
     """
     Send a single event at a designated time
 
@@ -183,12 +182,13 @@ def send_single_event(event, url, start_time, idx, upcomingEvent):
     except:
         has_error = True
         while has_error:
-            print("An error occured, retrying...")
+            print("An error occured while sending event, retrying...")
             r = requester.post_bundle(url, event["resource"])
             has_error = False
 
     completion_elapsed = time.time() - start_time
 
+    print(f"Event no.: {idx+1}/{num_of_events}", f"| Sent at: {event['expectedTime']}s", f"| Status code: {r.status_code}")
     emit(
         "postBundle",
         (
@@ -198,6 +198,6 @@ def send_single_event(event, url, start_time, idx, upcomingEvent):
             event["expectedTime"],
             start_elapsed,
             completion_elapsed,
-            upcomingEvent,
+            upcoming_event,
         ),
     )
