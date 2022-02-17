@@ -21,7 +21,7 @@ class Requester:
         client_secret = os.environ.get("CLIENT_SECRET")
         scope = os.environ.get("SCOPE")
 
-        # if any of the environment variables are not set, no token is requested
+        # If any of the environment variables are not set, no token is requested
         if None in [token_url, client_id, client_secret, scope]:
             return None
 

@@ -2,7 +2,7 @@ from datetime import datetime
 from api.generatorhelper import GeneratorHelper
 from api.bundler import Bundler
 
-# Generate and send events via POST to FHIR client
+
 class Generator:
     """
     A class to perform processing of event generation

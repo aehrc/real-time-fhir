@@ -3,7 +3,7 @@ import logging
 import os
 import time
 import requests
-from flask import Flask, request
+from flask import Flask
 from flask_socketio import SocketIO, emit
 
 from api.tablebuilder import TableBuilder
