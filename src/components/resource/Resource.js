@@ -24,7 +24,6 @@ function Resource() {
             setResourceUrl={setResourceUrl}
             fetchButton={fetchButton}
             setFetchButton={setFetchButton}
-            tableState={table}
             setTable={setTable}
           />
         </Grid>

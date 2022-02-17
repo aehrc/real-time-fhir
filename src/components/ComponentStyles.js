@@ -9,11 +9,11 @@ export const CardHeadingTypography = styled(Typography)(({ theme }) => ({
 }));
 
 export const CardContentMediumTypography = styled(Typography)(({ theme }) => ({
-  fontSize: 24
+  fontSize: 24,
 }));
 
 export const CardContentSmallTypography = styled(Typography)(({ theme }) => ({
-  fontSize: 14
+  fontSize: 14,
 }));
 
 export const StyledTableRow = styled(TableRow)(({ theme }) => ({

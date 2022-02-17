@@ -1,19 +1,24 @@
-import React from "react";
+import React, {useEffect} from "react";
 import { CardContent, Typography, Grid, Button, TextField, FormControl, Autocomplete } from "@mui/material";
 import { CloudDownload } from "@mui/icons-material";
-import resourceList from "../assets/resources-synthea.json";
 import { RegularCard } from "../ComponentStyles";
+import resourceList from "../assets/resources-synthea.json";
+import { socket } from "../../App";
 
 function ResourceForm(props) {
-  const { resourceUrlState, setResourceUrl, fetchButton, setFetchButton, tableState, setTable } = props;
+  const { resourceUrlState, setResourceUrl, fetchButton, setFetchButton, setTable } = props;
+
+  useEffect(() => {
+    socket.on("recieveResource", (data) => {
+      setTable(data)
+    });
+  }, []);
 
   const fetchResource = () => {
     setTable({ url: "", headers: [], body: [], error: "", title: "" });
     setFetchButton({ text: "Fetching...", disabled: true });
-    fetch(`/resources/${resourceUrlState.resourceType}${resourceUrlState.urlParams}`)
-      .then((res) => res.json())
-      .then((data) => setTable(data))
-      .catch((error) => setTable({ ...tableState, errorMsgg: error.toString() }));
+    
+    socket.emit("fetch_resource", `${resourceUrlState.resourceType}${resourceUrlState.urlParams}`);
   };
 
   return (

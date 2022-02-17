@@ -8,16 +8,13 @@ const colorMode = prefersDarkMode() ? "dark" : "light";
 
 ReactDOM.render(
   <React.StrictMode>
-      <App colorMode={colorMode}/>
+    <App colorMode={colorMode} />
   </React.StrictMode>,
   document.getElementById("root")
 );
 
 function prefersDarkMode() {
-  return (
-    window.matchMedia &&
-    window.matchMedia("(prefers-color-scheme: dark)").matches
-  );
+  return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
 }
 
 // If you want to start measuring performance in your app, pass a function

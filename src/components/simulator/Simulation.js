@@ -6,6 +6,7 @@ import SimulationAttributes from "./SimAttributes/SimAttributes";
 import EventTable from "./EventTable/EventTable";
 
 import simulationStatusReducer from "./SimStatusReducer";
+import EndpointValidator from "./EndpointValidator";
 import generateTableRow from "./EventTable/GenerateTableRow";
 
 const defaultAttributes = {
@@ -69,7 +70,15 @@ function Simulation() {
         upcomingEvents: upcomingEvents,
       });
 
-      const tableRow = generateTableRow(idx, bundle, timestamp, estimated, start_elapsed, completion_elapsed, attributesRef.current.totalEvents);
+      const tableRow = generateTableRow(
+        idx,
+        bundle,
+        timestamp,
+        estimated,
+        start_elapsed,
+        completion_elapsed,
+        attributesRef.current.totalEvents
+      );
       let tempTable = [tableRow, ...tableRef.current];
       if (tempTable.length > 30) {
         tempTable.pop();
@@ -89,19 +98,17 @@ function Simulation() {
       });
     });
 
-    socket.on("endpointStatus", (data) => {
-
-    });
+    socket.on("endpointStatus", (data) => {});
 
     return () => {
       socket.emit("change_endpoint", "***REMOVED***/fhir_r4/");
       socket.disconnect();
-
-    }
+    };
   }, []);
 
   return (
     <React.Fragment>
+      <EndpointValidator/>
       <Grid container>
         <Grid item xs={12}>
           <SimulationForm

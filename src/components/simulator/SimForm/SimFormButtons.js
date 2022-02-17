@@ -26,7 +26,7 @@ function SimulationFormButtons(props) {
   };
 
   const stopSimulation = () => {
-    socket.emit("stop_simulation", true);
+    socket.emit("stop_simulation");
     statusDispatch("stopSimulation");
   };
 

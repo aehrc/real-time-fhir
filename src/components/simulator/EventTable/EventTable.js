@@ -3,6 +3,7 @@ import { Table, TableBody, TableContainer, TableHead, TableRow, TableCell, Paper
 import { StyledTableRow, RegularCard } from "../../ComponentStyles";
 
 const tableHeaders = ["No.", "Resource", "Refs.", "References", "Timestamp", "Est. start(s)", "Actual start(s)", "Completed(s)"];
+
 const EventTable = (props) => (
   <RegularCard sx={{ my: 2.5 }}>
     <TableContainer component={Paper}>
