@@ -19,8 +19,8 @@ s = sched.scheduler(time.time)
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*")
 
-# log = logging.getLogger("werkzeug")
-# log.setLevel(logging.ERROR)
+log = logging.getLogger("werkzeug")
+log.setLevel(logging.ERROR)
 
 # Init api classes
 reader = Reader()
@@ -37,8 +37,6 @@ else:
     print("Endpoint configured as", url_endpoint)
 
 ### Resource page functions
-
-### Simulator page functions
 @socketio.on("fetch_resource")
 def fetch_resource(resource_query):
     """
