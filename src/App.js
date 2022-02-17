@@ -7,7 +7,7 @@ import NavBar from "./components/NavBar";
 import Simulation from "./components/simulator/Simulation";
 import Resource from "./components/resource/Resource";
 
-export const socket = io.connect("http://localhost:5000/");
+export const socket = io.connect(`http://localhost:${process.env.REACT_APP_BACKEND_PORT}/`);
 
 function App(props) {
   const { colorMode } = props;

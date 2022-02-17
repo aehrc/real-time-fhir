@@ -6,9 +6,9 @@ import requests
 from flask import Flask, request
 from flask_socketio import SocketIO, emit
 
+from api.tablebuilder import TableBuilder
 from api.generator import Generator
 from api.reader import Reader
-from api.tablebuilder import TableBuilder
 from api.eventhelper import EventHelper
 from api.requester import Requester
 
@@ -19,8 +19,8 @@ s = sched.scheduler(time.time)
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*")
 
-log = logging.getLogger("werkzeug")
-log.setLevel(logging.ERROR)
+# log = logging.getLogger("werkzeug")
+# log.setLevel(logging.ERROR)
 
 # Init api classes
 reader = Reader()
@@ -37,43 +37,49 @@ else:
     print("Endpoint configured as", url_endpoint)
 
 ### Resource page functions
-@app.route("/resources/<resource_type>")
-def find_resource(resource_type=None):
+
+### Simulator page functions
+@socketio.on("fetch_resource")
+def fetch_resource(resource_query):
     """
     Parses a query from url and gets resource data from server
 
     :param resource_type: Resource type from url
     :return: Dict/JSON object storing table information
     """
+    resource_type = resource_query.split("?")[0] if "?" in resource_query else resource_query
+
     # Define url and GET resource payload
-    url_get = f"***REMOVED***/fhir_r4/{resource_type}"
-    url_params = request.query_string.decode("ascii")
-    if len(url_params) > 1:
-        url_get += "?" + url_params
+    url_get = url_endpoint + resource_query
     payload = reader.search_FHIR_data(url_get)
 
     # Return with error message if an error occured
     if payload["resourceType"] == "OperationOutcome":
         if payload["issue"][0]["severity"] == "error":
-            return {
+            payload_with_error = {
                 "title": "",
                 "url": url_get,
                 "headers": [],
                 "body": [],
                 "error": payload["issue"][0]["diagnostics"],
             }
+            emit("recieveResource", payload_with_error)
+            return
 
     # Build resource table
     tb = TableBuilder(resource_type, payload)
     headers, data = tb.build_table()
     data = data.tolist()
-    return {
+
+    # Send resource table
+    payload_resource_table = {
         "title": resource_type,
         "url": url_get,
         "headers": headers,
         "body": data,
         "error": "",
     }
+    emit("recieveResource", payload_resource_table)
 
 
 ### Simulator page functions
