@@ -1,70 +1,71 @@
-# Getting Started with Create React App
+# Real Time FHIR
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Real Time FHIR is a simulation architecture that transmits Electronic Health Record data from a data source to a FHIR endpoint in real-time.
+This project uses a React-based dashboard for simulation control and a Python Flask-based backend for simulation processing. Currently, only NDJSON FHIR resource files are supported. 
+</br>
+</br>
 
-## Available Scripts
+## Getting Started with Real Time FHIR
+1. <b>Ensure that you have NodeJS installed (Preferably NodeJS 17.x).</b></br> If not, check out this guide to install NodeJS on your machine: [How to install Node.js](https://nodejs.dev/learn/how-to-install-nodejs).</br> If you're on Ubuntu, here are some command to install NodeJS 17.x:
+```
+curl -fsSL https://deb.nodesource.com/setup_17.x | sudo -E bash -
+sudo apt-get install -y nodejs
+```
 
-In the project directory, you can run:
+2. <b>Ensure that you have either [Yarn](https://yarnpkg.com) or [NPM](https://www.npmjs.com) installed.</b></br> If you don't have either, here are some commands to install the latest version of Yarn on Ubuntu:
+```
+curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor | sudo tee /usr/sh
+echo "deb [signed-by=/usr/share/keyrings/yarnkey.gpg] https://dl.yarnpkg.com/debian stable main" | s
+sudo apt-get update && sudo apt-get install yarn
+```
 
-### `yarn start`
+3. <b>Clone this repo and</b> ```cd``` <b>into its folder.</b>
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+4. <b>Run the command ```yarn install``` or ```npm install``` to download node dependencies, depending on which package manager you have installed.</b>
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+5. ```cd``` <b>into the /api folder to set up a Python virtual environment and install Python dependencies. Before following the commands below, ensure you have Python3 and pip installed!)</b>
+```
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
 
-### `yarn test`
+6. To start the app, run ```./run-api.sh``` and ```./run.sh``` in two different terminals.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+</br>
 
-### `yarn build`
+## Configuring environment variables
+Before usage, there are a few environment variables that requires configuration. Some are required to be configured while some are optional:
+### General environment variables (```.env```)
+<b>Required</b>
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+```ENDPOINT_URL``` - URL of simulation destination endpoint.
+</br>
+```REACT_APP_BACKEND_PORT``` - Port in which the Flask-based backend runs on. This value must be the same as <b>FLASK_RUN_PORT</b> in <b>Flask environment variables</b>.
+</br>
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+<b>Optional</b>
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```PORT``` - Port of which React runs on. If not specified, React will run on port 3000 by default.
+</br>
+```TOKEN_URL``` - Url of token endpoint to request client credentials access token. Do not specify if endpoint does not require authentication.
+</br>
+```CLIENT_ID``` - Client ID of endpoint.
+</br>
+```CLIENT_SECRET``` - Client Secret of endpoint.
+</br>
+```SCOPE``` - scope of access token.
+</br>
+</br>
 
-### `yarn eject`
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+### Flask environment variables (```api/.flaskenv```)
+<b>Required</b>
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```FLASK_APP``` - Main script for Flask app to be run on. By default, set value to <b>api.py</b>.
+</br>
+```FLASK_RUN_PORT``` - Port of which Flask runs on. This value must be the same as <b>REACT_APP_BACKEND_PORT</b> in <b>General environment variables</b>.
+</br>
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `yarn build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## Usage
