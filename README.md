@@ -83,7 +83,7 @@ Before usage, there are a few environment variables that requires configuration.
 **Simulation steps:**
 1. Ensure that connection to the set endpoint is successful by viewing the pop-up notification on the bottom left whenever you refresh the page.
 1. Before starting the simulation, set the resource type and duration input fields to your desired values.
-2. Click on the ```Start Simulation``` button to start the simulation.
+2. Click on the "Start Simulation" button to start the simulation.
 3. To stop the simulation midway, click on the "Stop Simulation" button. Otherwise, the simulation will stop once all events are sent to the endpoint.
 4. To start a new simulation, click on the "Reset Simulation" button to reset all values.
 
