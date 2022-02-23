@@ -102,6 +102,9 @@ To fetch a resource, specify the resource type and additional parameters (option
 
 Note: In a simulation, Real Time FHIR will bundle a resource together with all its references. In the case where a reference cannot be found, an error will occur and the simulation will fail.
 
+Real-Time FHIR is copyright © 2022, Commonwealth Scientific and Industrial Research Organisation
+(CSIRO) ABN 41 687 119 230. Licensed under the [CSIRO Open Source Software Licence Agreement](./LICENSE.md).
+
 
 
 
