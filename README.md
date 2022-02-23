@@ -20,18 +20,21 @@ echo "deb [signed-by=/usr/share/keyrings/yarnkey.gpg] https://dl.yarnpkg.com/deb
 sudo apt-get update && sudo apt-get install yarn
 ```
 
-3. **Clone this repo and ```cd``` into its folder.**
+3. **Clone this repo and ```cd``` into its root folder.**
 
 4. **Run the command ```yarn install``` or ```npm install``` to download node dependencies, depending on which package manager you have installed.**
 
-5. **```cd``` into the /api folder to set up a Python virtual environment and install Python dependencies. Before following the commands below, ensure you have Python3 and pip installed!)**
+5. **```cd``` into the /api folder to set up a Python virtual environment and install Python dependencies. Before following the commands below, ensure you have Python3 and pip installed! ```cd``` back to the root folder after installation.** 
 ```
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
+cd ..
 ```
 
-6. **To start the app, run ```./run-api.sh``` and ```./run.sh``` in two different terminals.**
+6. **Refer to the section below to [configure environment variables](https://github.com/aehrc/real-time-fhir#configuring-environment-variables) before starting the app. The easiest way to do this is to create a ```.env``` file in the root folder.**
+
+7. **To start the app, run ```./run-api.sh``` and ```./run.sh``` in two different terminals.**
 
 </br>
 
