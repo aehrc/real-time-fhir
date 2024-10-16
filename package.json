@@ -1,0 +1,32 @@
+{
+  "name": "real-time-fhir",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "lint": "eslint 'src/**/*.ts'",
+    "lint:fix": "eslint 'src/**/*.ts' --fix"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aehrc/real-time-fhir.git"
+  },
+  "keywords": [],
+  "author": "John Grimes",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/aehrc/real-time-fhir/issues"
+  },
+  "homepage": "https://github.com/aehrc/real-time-fhir#readme",
+  "description": "",
+  "devDependencies": {
+    "@types/fs-extra": "^11.0.4",
+    "@types/yargs": "^17.0.33",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.3"
+  },
+  "dependencies": {
+    "fs-extra": "^11.2.0",
+    "yargs": "^17.7.2"
+  }
+}
