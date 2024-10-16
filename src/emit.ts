@@ -4,6 +4,8 @@
 import * as fs from "fs-extra";
 import * as path from "path";
 import * as yargs from "yargs";
+import { createReadStream } from 'fs';
+import { createInterface, Interface } from 'readline';
 
 // Define the structure of a FHIR Bundle
 interface Bundle {
@@ -46,58 +48,115 @@ async function getAccessToken(tokenUrl: string, clientId: string, clientSecret: 
   return data.access_token;
 }
 
-// This is the main function that emits bundles to the FHIR server
-async function emitBundles(inputDir: string, fhirServerUrl: string, tokenUrl: string, clientId: string, clientSecret: string, simulationDuration?: number): Promise<void> {
-  // Read all JSON files from the input directory
+async function getFilesMetadata(inputDir: string): Promise<{ file: string, timestamp: number }[]> {
   const files = await fs.readdir(inputDir);
   const jsonFiles = files.filter((file: string) => file.endsWith(".json"));
-  
-  // Sort files by their original timestamp
-  const sortedFiles = await Promise.all(jsonFiles.map(async (file) => {
+  console.log(`Found ${jsonFiles.length} JSON files in the input directory.`);
+
+  const metadata: { file: string, timestamp: number }[] = [];
+  let processedFiles = 0;
+  const logInterval = Math.max(1, Math.floor(jsonFiles.length / 20));
+
+  for (const file of jsonFiles) {
     const filePath = path.join(inputDir, file);
-    const bundle: Bundle = await fs.readJSON(filePath);
-    return { file, timestamp: bundle.timestamp || "0" };
-  }));
-  sortedFiles.sort((a, b) => a.timestamp.localeCompare(b.timestamp));
+    let fileStream: fs.ReadStream | null = null;
+    let rl: Interface | null = null;
 
-  // Calculate the compression factor if a simulation duration is specified
-  const startTime = new Date();
-  const firstEventTime = new Date(sortedFiles[0].timestamp);
-  const lastEventTime = new Date(sortedFiles[sortedFiles.length - 1].timestamp);
-  const originalDuration = lastEventTime.getTime() - firstEventTime.getTime();
-  const compressionFactor = simulationDuration ? (simulationDuration * 1000 / originalDuration) : 1;
+    try {
+      fileStream = createReadStream(filePath);
+      rl = createInterface({
+        input: fileStream,
+        crlfDelay: Infinity
+      });
 
-  // Get the initial access token
-  let accessToken = await getAccessToken(tokenUrl, clientId, clientSecret);
-
-  let currentIndex = 0;
-
-  // Main loop for processing bundles
-  while (currentIndex < sortedFiles.length) {
-    const currentTime = new Date();
-    
-    // Process all bundles that should have been sent by now
-    while (currentIndex < sortedFiles.length) {
-      const { file, timestamp } = sortedFiles[currentIndex];
-      const eventTime = new Date(timestamp);
-      const timeDiff = eventTime.getTime() - firstEventTime.getTime();
-      const adjustedTimeDiff = timeDiff * compressionFactor;
-      const simulationTime = new Date(startTime.getTime() + adjustedTimeDiff);
-
-      if (simulationTime <= currentTime) {
-        // Process the bundle and update the access token if necessary
-        accessToken = await processBundle(file, inputDir, fhirServerUrl, accessToken, tokenUrl, clientId, clientSecret);
-        currentIndex++;
-      } else {
-        break;
+      let timestamp = 0;
+      for await (const line of rl) {
+        if (line.includes('"timestamp"')) {
+          const match = line.match(/"timestamp"\s*:\s*"([^"]+)"/);
+          if (match) {
+            // Convert ISO string to number (milliseconds since Unix epoch)
+            timestamp = new Date(match[1]).getTime();
+            break;
+          }
+        }
       }
+
+      metadata.push({ file, timestamp });
+    } finally {
+      if (rl) rl.close();
+      if (fileStream) fileStream.close();
     }
 
-    // Wait for a short time before checking again
-    if (currentIndex < sortedFiles.length) {
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for 1 second
+    // Log progress (unchanged)
+    processedFiles++;
+    if (processedFiles % logInterval === 0 || processedFiles === jsonFiles.length) {
+      const percentage = (processedFiles / jsonFiles.length * 100).toFixed(1);
+      console.log(`Processed metadata for ${processedFiles}/${jsonFiles.length} files (${percentage}%)`);
     }
   }
+
+  return metadata;
+}
+
+// This is the main function that emits bundles to the FHIR server
+async function emitBundles(inputDir: string, fhirServerUrl: string, tokenUrl: string, clientId: string, clientSecret: string, simulationDuration?: number): Promise<void> {
+  const startTime = new Date();
+  let firstEventTime: number | null = null;
+  let lastEventTime: number | null = null;
+  let compressionFactor: number;
+
+  // Get initial access token
+  let accessToken = await getAccessToken(tokenUrl, clientId, clientSecret);
+
+  console.log("Collecting and sorting file metadata...");
+  // Get metadata for all files and sort by timestamp
+  const fileMetadata = await getFilesMetadata(inputDir);
+  fileMetadata.sort((a, b) => a.timestamp - b.timestamp);
+
+  console.log("Calculating global event time range...");
+  // Determine the time range of all events
+  firstEventTime = fileMetadata[0].timestamp;
+  lastEventTime = fileMetadata[fileMetadata.length - 1].timestamp;
+
+  const originalDuration = lastEventTime - firstEventTime;
+  // Calculate compression factor if simulation duration is specified
+  compressionFactor = simulationDuration ? (simulationDuration * 1000 / originalDuration) : 1;
+
+  // Log details about the event time range and compression
+  console.log(`Global event time range:`);
+  console.log(`  First event: ${new Date(firstEventTime).toISOString()}`);
+  console.log(`  Last event: ${new Date(lastEventTime).toISOString()}`);
+  console.log(`  Original duration: ${originalDuration}ms`);
+  console.log(`  Compression factor: ${compressionFactor}`);
+
+  console.log("Starting to process files...");
+  for (const { file, timestamp } of fileMetadata) {
+    const eventTime = timestamp;
+    
+    // Calculate the current simulation time
+    const elapsedRealTime = Date.now() - startTime.getTime();
+    const simulationTime = startTime.getTime() + (elapsedRealTime * compressionFactor);
+
+    // Wait until it's time to process this file according to the simulation timeline
+    while (Date.now() < simulationTime) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+
+    console.log(`Processing file: ${file}`);
+    console.log(`  Original event time: ${new Date(eventTime).toISOString()}`);
+    console.log(`  Simulation time: ${new Date(simulationTime).toISOString()}`);
+
+    // Process the bundle and potentially refresh the access token
+    accessToken = await processBundle(file, inputDir, fhirServerUrl, accessToken, tokenUrl, clientId, clientSecret);
+  }
+
+  // Log summary information
+  console.log(`Finished processing all files.`);
+  console.log(`Total files processed: ${fileMetadata.length}`);
+  console.log(`First event time: ${new Date(firstEventTime).toISOString()}`);
+  console.log(`Last event time: ${new Date(lastEventTime).toISOString()}`);
+  console.log(`Original duration: ${originalDuration}ms`);
+  console.log(`Overall compression factor: ${compressionFactor}`);
 }
 
 // This function processes a single bundle file
@@ -207,6 +266,15 @@ async function main() {
 
   const [inputDir] = argv._ as [string];
   
+  console.log("Script arguments:");
+  console.log(`  Input directory: ${inputDir}`);
+  console.log(`  FHIR server: ${argv['fhir-server']}`);
+  console.log(`  Token URL: ${argv['token-url']}`);
+  console.log(`  Client ID: ${argv['client-id']}`);
+  console.log(`  Client Secret: ${argv['client-secret'].substring(0, 3)}...`); // Only show first 3 characters for security
+  console.log(`  Simulation duration: ${argv['simulation-duration'] || 'Not specified'}`);
+  console.log(""); // Empty line for better readability
+
   // Ensure the input directory exists
   if (!(await fs.pathExists(inputDir))) {
     console.error(`Input directory does not exist: ${inputDir}`);
