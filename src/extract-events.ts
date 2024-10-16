@@ -3,6 +3,7 @@ import * as path from "path";
 import * as yargs from "yargs";
 import { createReadStream } from 'fs';
 import { createInterface } from 'readline';
+import { Mutex } from 'async-mutex';
 
 /**
  * Data Structures
@@ -39,17 +40,16 @@ interface FileMetadata {
 }
 
 /**
- * Process Bundle Function
- * 
  * This is the core function of our program. It takes an input bundle,
  * processes its resources, and creates individual event bundles for
  * Observations and Conditions.
  */
-async function processBundle(
+async function extractEventsFromBundle(
   inputPath: string,
   outputDir: string
 ): Promise<void> {
   const inputBundle: Omit<Bundle, "type"> & { entry: { resource: Resource }[] } = await fs.readJSON(inputPath);
+
   const patients: { [key: string]: Resource } = {};
   const eventBundles: Bundle[] = [];
 
@@ -117,7 +117,7 @@ async function processBundle(
  * @param outputDir - The directory containing the JSON files
  * @returns A promise that resolves to an array of FileMetadata objects
  */
-async function generateFileMetadata(outputDir: string): Promise<FileMetadata[]> {
+async function generateIndex(outputDir: string): Promise<FileMetadata[]> {
   // Get all JSON files in the directory
   const files = await fs.readdir(outputDir);
   const jsonFiles = files.filter((file: string) => file.endsWith(".json"));
@@ -168,14 +168,14 @@ async function generateFileMetadata(outputDir: string): Promise<FileMetadata[]> 
       const percentage = (processedFiles / jsonFiles.length * 100).toFixed(1);
       const elapsedTime = (Date.now() - startTime) / 1000;
       const filesPerSecond = (processedFiles / elapsedTime).toFixed(2);
-      console.log(`Processed metadata for ${processedFiles}/${jsonFiles.length} files (${percentage}%) - ${filesPerSecond} files/sec`);
+      console.log(`Indexed ${processedFiles}/${jsonFiles.length} files (${percentage}%) - ${filesPerSecond} files/sec`);
     }
   }
 
-  console.log("Finished processing all files. Sorting metadata...");
+  console.log("Finished indexing all files. Sorting index...");
   // Sort metadata by timestamp to ensure chronological order
   const sortedMetadata = metadata.sort((a, b) => a.timestamp - b.timestamp);
-  console.log("Metadata sorting complete.");
+  console.log("Index sorting complete.");
 
   return sortedMetadata;
 }
@@ -216,37 +216,46 @@ async function main() {
   const files = await fs.readdir(inputDir);
   const jsonFiles = files.filter((file: string) => file.endsWith(".json"));
   const filesToProcess = argv.limit ? jsonFiles.slice(0, argv.limit) : jsonFiles;
+  const totalFiles = filesToProcess.length;
+
+  let processedCount = 0;
+  const progressMutex = new Mutex();
 
   // Process files in parallel with the specified concurrency limit
   const processFile = async (file: string) => {
     const inputPath = path.join(inputDir, file);
-    await processBundle(inputPath, outputDir);
+    await extractEventsFromBundle(inputPath, outputDir);
+    
+    await progressMutex.runExclusive(async () => {
+      processedCount++;
+      const percentage = (processedCount / totalFiles * 100).toFixed(1);
+      console.log(`Processed ${processedCount}/${totalFiles} input bundles (${percentage}%)`);
+    });
   };
 
   for (let i = 0; i < filesToProcess.length; i += concurrencyLimit) {
     const batch = filesToProcess.slice(i, i + concurrencyLimit);
-    await Promise.all(batch.map(processFile));
+    await Promise.all(batch.map(file => processFile(file)));
   }
 
   // After processing all files, generate and save metadata
-  console.log("Starting file metadata generation...");
+  console.log("Starting index generation...");
   const metadataStartTime = Date.now();
-  const metadata = await generateFileMetadata(outputDir);
+  const metadata = await generateIndex(outputDir);
   const metadataEndTime = Date.now();
   const metadataProcessingTime = (metadataEndTime - metadataStartTime) / 1000;
-  console.log(`File metadata generation completed in ${metadataProcessingTime.toFixed(2)} seconds.`);
+  console.log(`Index generation completed in ${metadataProcessingTime.toFixed(2)} seconds.`);
 
   // Write the metadata to a JSON file
-  console.log("Writing file metadata to disk...");
+  console.log("Writing index to disk...");
   const metadataPath = path.join(outputDir, "index.json");
   const writeStartTime = Date.now();
   await fs.writeJSON(metadataPath, metadata, { spaces: 2 });
   const writeEndTime = Date.now();
   const writeTime = (writeEndTime - writeStartTime) / 1000;
-  console.log(`File metadata saved to ${metadataPath} in ${writeTime.toFixed(2)} seconds.`);
+  console.log(`Index saved to ${metadataPath} in ${writeTime.toFixed(2)} seconds.`);
 
   // Log a summary of the metadata
-  const totalFiles = metadata.length;
   const firstTimestamp = new Date(metadata[0].timestamp).toISOString();
   const lastTimestamp = new Date(metadata[metadata.length - 1].timestamp).toISOString();
   console.log(`Metadata summary:`);

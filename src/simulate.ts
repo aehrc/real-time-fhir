@@ -53,7 +53,7 @@ interface FileMetadata {
   timestamp: number;
 }
 
-async function readFileMetadata(inputDir: string): Promise<FileMetadata[]> {
+async function readIndex(inputDir: string): Promise<FileMetadata[]> {
   const metadataPath = path.join(inputDir, "index.json");
   if (!(await fs.pathExists(metadataPath))) {
     throw new Error(`Metadata file not found: ${metadataPath}`);
@@ -62,7 +62,7 @@ async function readFileMetadata(inputDir: string): Promise<FileMetadata[]> {
 }
 
 // This is the main function that emits bundles to the FHIR server
-async function emitBundles(inputDir: string, fhirServerUrl: string, tokenUrl: string, clientId: string, clientSecret: string, simulationDuration?: number): Promise<void> {
+async function runSimulation(inputDir: string, fhirServerUrl: string, tokenUrl: string, clientId: string, clientSecret: string, simulationDuration?: number): Promise<void> {
   const startTime = new Date();
   let firstEventTime: number | null = null;
   let lastEventTime: number | null = null;
@@ -72,7 +72,7 @@ async function emitBundles(inputDir: string, fhirServerUrl: string, tokenUrl: st
   let accessToken = await getAccessToken(tokenUrl, clientId, clientSecret);
 
   console.log("Reading index file...");
-  const fileMetadata = await readFileMetadata(inputDir);
+  const fileMetadata = await readIndex(inputDir);
 
   console.log("Calculating event time range...");
   // Determine the time range of all events
@@ -83,45 +83,72 @@ async function emitBundles(inputDir: string, fhirServerUrl: string, tokenUrl: st
   // Calculate compression factor if simulation duration is specified
   compressionFactor = simulationDuration ? (simulationDuration * 1000 / originalDuration) : 1;
 
+  // Format durations as human-readable strings
+  const formatDuration = (ms: number) => {
+    const seconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+
+    return `${days}d ${hours % 24}h ${minutes % 60}m ${seconds % 60}s`;
+  };
+
   // Log details about the event time range and compression
   console.log(`Event time range:`);
   console.log(`  First event: ${new Date(firstEventTime).toISOString()}`);
   console.log(`  Last event: ${new Date(lastEventTime).toISOString()}`);
-  console.log(`  Original duration: ${originalDuration}ms`);
-  console.log(`  Compression factor: ${compressionFactor}`);
+  console.log(`  Original duration: ${formatDuration(originalDuration)} (${originalDuration} ms)`);
+  console.log(`  Simulation duration: ${simulationDuration ? formatDuration(simulationDuration * 1000) : 'Not specified'}`);
+  console.log(`  Compression factor: ${compressionFactor.toFixed(4)}`);
+  console.log("");
 
   console.log("Starting to process files...");
+  let filesProcessed = 0;
+  let lastLogTime = Date.now();
+  const simulationStartTime = Date.now();
+  const simulationEndTime = simulationStartTime + (lastEventTime - firstEventTime!) * compressionFactor;
+
   for (const { file, timestamp } of fileMetadata) {
+    // Calculate the time to wait before processing this file
     const eventTime = timestamp;
-    
-    // Calculate the current simulation time
-    const elapsedRealTime = Date.now() - startTime.getTime();
-    const simulationTime = startTime.getTime() + (elapsedRealTime * compressionFactor);
+    const simulatedEventTime = startTime.getTime() + (eventTime - firstEventTime!) * compressionFactor;
+    const waitTime = simulatedEventTime - Date.now();
 
     // Wait until it's time to process this file according to the simulation timeline
-    while (Date.now() < simulationTime) {
-      await new Promise(resolve => setTimeout(resolve, 100));
+    if (waitTime > 0) {
+      await new Promise(resolve => setTimeout(resolve, waitTime));
     }
 
-    console.log(`Processing file: ${file}`);
-    console.log(`  Original event time: ${new Date(eventTime).toISOString()}`);
-    console.log(`  Simulation time: ${new Date(simulationTime).toISOString()}`);
-
     // Process the bundle and potentially refresh the access token
-    accessToken = await processBundle(file, inputDir, fhirServerUrl, accessToken, tokenUrl, clientId, clientSecret);
+    accessToken = await simulateEvent(file, inputDir, fhirServerUrl, accessToken, tokenUrl, clientId, clientSecret);
+    
+    filesProcessed++;
+
+    // Log summary every second
+    if (Date.now() - lastLogTime >= 1000) {
+      const currentSimulationTime = Date.now();
+      const percentComplete = ((currentSimulationTime - simulationStartTime) / (simulationEndTime - simulationStartTime)) * 100;
+      const lag = currentSimulationTime - simulatedEventTime;
+      console.log(`Simulation time: ${new Date(simulatedEventTime).toISOString()}, events: ${filesProcessed}/${fileMetadata.length}, lag: ${lag.toFixed(0)}ms`);
+      lastLogTime = Date.now();
+    }
   }
+
+  // Final log after all files are processed
+  console.log(`Files processed: ${filesProcessed}/${fileMetadata.length} (100.00%)`);
 
   // Log summary information
   console.log(`Finished processing all files.`);
   console.log(`Total files processed: ${fileMetadata.length}`);
   console.log(`First event time: ${new Date(firstEventTime).toISOString()}`);
   console.log(`Last event time: ${new Date(lastEventTime).toISOString()}`);
-  console.log(`Original duration: ${originalDuration}ms`);
-  console.log(`Overall compression factor: ${compressionFactor}`);
+  console.log(`Original duration: ${formatDuration(originalDuration)} (${originalDuration}ms)`);
+  console.log(`Simulated duration: ${formatDuration((Date.now() - startTime.getTime()))}`);
+  console.log(`Overall compression factor: ${compressionFactor.toFixed(2)}`);
 }
 
 // This function processes a single bundle file
-async function processBundle(
+async function simulateEvent(
   file: string, 
   inputDir: string, 
   fhirServerUrl: string, 
@@ -173,7 +200,6 @@ async function processBundle(
       }
     }
 
-    console.log(`Submitted ${file} at ${new Date().toISOString()}`);
   } catch (error) {
     // Log detailed error information and exit the script
     console.error(`Error submitting ${file}. Details:`);
@@ -243,7 +269,7 @@ async function main() {
   }
 
   // Start the bundle emission process
-  await emitBundles(
+  await runSimulation(
     inputDir, 
     argv['fhir-server'], 
     argv['token-url'], 
