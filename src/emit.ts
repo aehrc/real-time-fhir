@@ -48,54 +48,17 @@ async function getAccessToken(tokenUrl: string, clientId: string, clientSecret: 
   return data.access_token;
 }
 
-async function getFilesMetadata(inputDir: string): Promise<{ file: string, timestamp: number }[]> {
-  const files = await fs.readdir(inputDir);
-  const jsonFiles = files.filter((file: string) => file.endsWith(".json"));
-  console.log(`Found ${jsonFiles.length} JSON files in the input directory.`);
+interface FileMetadata {
+  file: string;
+  timestamp: number;
+}
 
-  const metadata: { file: string, timestamp: number }[] = [];
-  let processedFiles = 0;
-  const logInterval = Math.max(1, Math.floor(jsonFiles.length / 20));
-
-  for (const file of jsonFiles) {
-    const filePath = path.join(inputDir, file);
-    let fileStream: fs.ReadStream | null = null;
-    let rl: Interface | null = null;
-
-    try {
-      fileStream = createReadStream(filePath);
-      rl = createInterface({
-        input: fileStream,
-        crlfDelay: Infinity
-      });
-
-      let timestamp = 0;
-      for await (const line of rl) {
-        if (line.includes('"timestamp"')) {
-          const match = line.match(/"timestamp"\s*:\s*"([^"]+)"/);
-          if (match) {
-            // Convert ISO string to number (milliseconds since Unix epoch)
-            timestamp = new Date(match[1]).getTime();
-            break;
-          }
-        }
-      }
-
-      metadata.push({ file, timestamp });
-    } finally {
-      if (rl) rl.close();
-      if (fileStream) fileStream.close();
-    }
-
-    // Log progress (unchanged)
-    processedFiles++;
-    if (processedFiles % logInterval === 0 || processedFiles === jsonFiles.length) {
-      const percentage = (processedFiles / jsonFiles.length * 100).toFixed(1);
-      console.log(`Processed metadata for ${processedFiles}/${jsonFiles.length} files (${percentage}%)`);
-    }
+async function readFileMetadata(inputDir: string): Promise<FileMetadata[]> {
+  const metadataPath = path.join(inputDir, "index.json");
+  if (!(await fs.pathExists(metadataPath))) {
+    throw new Error(`Metadata file not found: ${metadataPath}`);
   }
-
-  return metadata;
+  return fs.readJSON(metadataPath);
 }
 
 // This is the main function that emits bundles to the FHIR server
@@ -108,10 +71,8 @@ async function emitBundles(inputDir: string, fhirServerUrl: string, tokenUrl: st
   // Get initial access token
   let accessToken = await getAccessToken(tokenUrl, clientId, clientSecret);
 
-  console.log("Collecting and sorting file metadata...");
-  // Get metadata for all files and sort by timestamp
-  const fileMetadata = await getFilesMetadata(inputDir);
-  fileMetadata.sort((a, b) => a.timestamp - b.timestamp);
+  console.log("Reading file metadata...");
+  const fileMetadata = await readFileMetadata(inputDir);
 
   console.log("Calculating global event time range...");
   // Determine the time range of all events
