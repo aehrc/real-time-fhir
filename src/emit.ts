@@ -71,10 +71,10 @@ async function emitBundles(inputDir: string, fhirServerUrl: string, tokenUrl: st
   // Get initial access token
   let accessToken = await getAccessToken(tokenUrl, clientId, clientSecret);
 
-  console.log("Reading file metadata...");
+  console.log("Reading index file...");
   const fileMetadata = await readFileMetadata(inputDir);
 
-  console.log("Calculating global event time range...");
+  console.log("Calculating event time range...");
   // Determine the time range of all events
   firstEventTime = fileMetadata[0].timestamp;
   lastEventTime = fileMetadata[fileMetadata.length - 1].timestamp;
@@ -84,7 +84,7 @@ async function emitBundles(inputDir: string, fhirServerUrl: string, tokenUrl: st
   compressionFactor = simulationDuration ? (simulationDuration * 1000 / originalDuration) : 1;
 
   // Log details about the event time range and compression
-  console.log(`Global event time range:`);
+  console.log(`Event time range:`);
   console.log(`  First event: ${new Date(firstEventTime).toISOString()}`);
   console.log(`  Last event: ${new Date(lastEventTime).toISOString()}`);
   console.log(`  Original duration: ${originalDuration}ms`);

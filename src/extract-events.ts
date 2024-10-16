@@ -118,8 +118,6 @@ async function processBundle(
  * @returns A promise that resolves to an array of FileMetadata objects
  */
 async function generateFileMetadata(outputDir: string): Promise<FileMetadata[]> {
-  console.log("Starting file metadata generation...");
-  
   // Get all JSON files in the directory
   const files = await fs.readdir(outputDir);
   const jsonFiles = files.filter((file: string) => file.endsWith(".json"));
