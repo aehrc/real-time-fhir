@@ -130,7 +130,6 @@ async function main() {
   console.log(`Input directory: ${inputDir}`);
   console.log(`FHIR server: ${argv["fhir-server"]}`);
   console.log(`Compression factor: ${argv["compression-factor"]}`);
-  console.log(`Time step: ${argv["time-step"]}`);
   console.log("");
 
   // Ensure the input directory exists.
