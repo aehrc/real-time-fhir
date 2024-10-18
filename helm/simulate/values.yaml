@@ -1,0 +1,24 @@
+job:
+  backoffLimit: 3
+  activeDeadlineSeconds: 600
+
+image:
+  pullPolicy: IfNotPresent
+
+simulate:
+  fhirServer: "http://fhir-server/fhir"
+  compressionFactor: "1"
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+
+volumes: []
+volumeMounts: []
+nodeSelector: {}
+affinity: {}
+tolerations: []

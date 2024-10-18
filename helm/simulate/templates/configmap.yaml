@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-script
+data:
+  simulate.ts: |
+    {{ .Files.Get "simulate.ts" | nindent 4 }}

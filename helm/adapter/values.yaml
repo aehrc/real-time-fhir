@@ -1,0 +1,7 @@
+adapter:
+  image: docker-registry.it.csiro.au/real-time-fhir/adapter:demo
+  listenPort: "3000"
+  kafka:
+    clientId: fhir-adapter
+    brokers: 
+      - "kafka:9092"

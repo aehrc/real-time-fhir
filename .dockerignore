@@ -1,0 +1,18 @@
+# Ignore everything
+*
+
+# Allow files and directories
+!package.json
+!package-lock.json
+!tsconfig.json
+!dist/
+
+# Ignore node_modules in any allowed directory
+**/node_modules
+
+# Ignore any test files or directories
+**/*.test.ts
+**/*.spec.ts
+**/tests/
+**/test/
+**/\_\_tests\_\_/

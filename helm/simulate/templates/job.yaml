@@ -1,0 +1,44 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Release.Name }}-simulate
+spec:
+  backoffLimit: {{ .Values.job.backoffLimit }}
+  activeDeadlineSeconds: {{ .Values.job.activeDeadlineSeconds }}
+  template:
+    metadata:
+      name: {{ .Release.Name }}-simulate
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: simulate
+        image: "docker-registry.it.csiro.au/real-time-fhir/simulator:demo"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        args:
+        - "{{ .Values.simulate.inputDir }}"
+        - "--fhir-server"
+        - "{{ .Values.simulate.fhirServer }}"
+        - "--compression-factor"
+        - "{{ .Values.simulate.compressionFactor }}"
+        resources:
+          {{- toYaml .Values.resources | nindent 12 }}
+        {{- if .Values.volumeMounts }}
+        volumeMounts:
+        {{- toYaml .Values.volumeMounts | nindent 8 }}
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.volumes }}
+      volumes:
+      {{- toYaml .Values.volumes | nindent 6 }}
+      {{- end }}

@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-deployment
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: {{ .Values.adapter.image }}
+          ports:
+            - containerPort: {{ .Values.adapter.listenPort }}
+          env:
+            - name: PORT
+              value: "{{ .Values.adapter.listenPort }}"
+            - name: KAFKA_CLIENT_ID
+              value: {{ .Values.adapter.kafka.clientId }}
+            - name: KAFKA_BROKERS
+              value: {{ join "," .Values.adapter.kafka.brokers }}
