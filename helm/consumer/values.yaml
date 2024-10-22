@@ -1,0 +1,6 @@
+consumer:
+  image: docker-registry.it.csiro.au/real-time-fhir/consumer:demo
+  kafka:
+    topic: fhir_events
+    bootstrapServers: kafka:9092
+  dbName: ckd_views

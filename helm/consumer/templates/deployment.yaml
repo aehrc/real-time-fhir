@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-deployment
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: {{ .Values.consumer.image }}
+          command: 
+            - "python"
+            - "/app/streaming_views.py"
+            - "--kafka-topic"
+            - {{ .Values.consumer.kafka.topic }}
+            - "--kafka-bootstrap-servers"
+            - {{ .Values.consumer.kafka.bootstrapServers }}
+            - "--db-name"
+            - {{ .Values.consumer.dbName }}
+          {{- if .Values.consumer.volumeMounts }}
+          volumeMounts: {{ .Values.consumer.volumeMounts | toJson }}
+          {{- end }}
+      {{- if .Values.consumer.volumes }}
+      volumes: {{ .Values.consumer.volumes | toJson }}
+      {{- end }}

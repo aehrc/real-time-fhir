@@ -1,0 +1,5 @@
+apiVersion: v2
+name: consumer
+description: Transforms a Kafka stream of FHIR resources into streaming views using SQL on FHIR and Pathling
+type: application
+version: 0.1.0

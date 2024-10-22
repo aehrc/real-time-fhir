@@ -1,0 +1,5 @@
+*
+!streaming_views.py
+!consumer_requirements.txt
+!deps/*.whl
+!deps/*.jar
