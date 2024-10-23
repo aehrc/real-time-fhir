@@ -277,16 +277,37 @@ def start_consumer(kafka_topic, kafka_bootstrap_servers, db_name):
         return pc.encode(json_stream, resource_type)
 
     def write_postgresql(df: DataFrame, db_name, view_name):
-        print(f"Writing {df.count()} rows to {db_name}.{view_name}, column names: {df.columns}")
-        df.write \
-            .format("jdbc") \
-            .option("url", "jdbc:postgresql://target-db-postgresql/target") \
-            .option("dbtable", f"{db_name}.{view_name}") \
-            .option("user", "analyticsuser") \
-            .option("password", "password") \
-            .option("driver", "org.postgresql.Driver") \
-            .mode("append") \
-            .save()
+        import psycopg2
+        columns = df.columns
+        insert_columns = ', '.join(columns)
+        insert_values = ', '.join(['%s'] * len(columns))
+        # Exclude 'id' from the update set to avoid updating the primary key
+        update_set = ', '.join([f"{col} = EXCLUDED.{col}" for col in columns if col != 'id'])
+        sql = f"""
+        INSERT INTO {db_name}.{view_name} ({insert_columns})
+        VALUES ({insert_values})
+        ON CONFLICT (id) DO UPDATE SET {update_set}
+        """
+
+        def upsert_partition(partition):
+            # Establish connection per partition
+            conn = psycopg2.connect(
+                host="target-db-postgresql",
+                database="target",
+                user="analyticsuser",
+                password="password"
+            )
+            cursor = conn.cursor()
+            data = list(partition)
+            if data:
+                cursor.executemany(sql, data)
+                conn.commit()
+            cursor.close()
+            conn.close()
+
+        # Apply the upsert function to each partition
+        df.foreachPartition(upsert_partition)
+
 
     click.echo(f"Starting kafka listener on topic: {kafka_topic} at: {kafka_bootstrap_servers}")
     click.echo(f"Writing to database: {db_name}")
