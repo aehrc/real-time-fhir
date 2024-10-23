@@ -9,9 +9,9 @@ from pathling._version import (
 )
 
 from pyspark import __version__ as __spark_version__
-from pyspark.sql import SparkSession
+from pyspark.sql import SparkSession, DataFrame
 from pathling import PathlingContext
-from pyspark.sql.functions import col, get_json_object, explode, schema_of_json, from_json, to_json
+from pyspark.sql.functions import explode, from_json
 
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 TARGET_DIR = os.path.join(BASE_DIR, 'target')
@@ -27,7 +27,8 @@ def _get_or_create_spark():
             f"org.apache.spark:spark-sql-kafka-0-10_{__scala_version__}:{__spark_version__},"
             f"au.csiro.pathling:library-runtime:{__java_version__},"
             f"io.delta:delta-spark_{__scala_version__}:{__delta_version__},"
-            f"org.apache.hadoop:hadoop-aws:{__hadoop_version__}",
+            f"org.apache.hadoop:hadoop-aws:{__hadoop_version__},"
+            f"org.postgresql:postgresql:42.2.18"  # Add this line for PostgreSQL JDBC driver
         )
         .config("spark.sql.warehouse.dir", SPARK_WAREHOUSE_DIR) \
         .config("spark.driver.extraJavaOptions", f"-Dderby.system.home={TARGET_DIR}")
@@ -275,14 +276,23 @@ def start_consumer(kafka_topic, kafka_bootstrap_servers, db_name):
             .filter(from_json("resource", 'STRUCT<resourceType:STRING>').resourceType == resource_type)
         return pc.encode(json_stream, resource_type)
 
+    def write_postgresql(df: DataFrame, db_name, view_name):
+        print(f"Writing {df.count()} rows to {db_name}.{view_name}, column names: {df.columns}")
+        df.write \
+            .format("jdbc") \
+            .option("url", "jdbc:postgresql://target-db-postgresql/target") \
+            .option("dbtable", f"{db_name}.{view_name}") \
+            .option("user", "analyticsuser") \
+            .option("password", "password") \
+            .option("driver", "org.postgresql.Driver") \
+            .mode("append") \
+            .save()
+
     click.echo(f"Starting kafka listener on topic: {kafka_topic} at: {kafka_bootstrap_servers}")
     click.echo(f"Writing to database: {db_name}")
 
     spark = _get_or_create_spark()
     pc = PathlingContext.create(spark)
-
-    spark.sql(f"CREATE SCHEMA IF NOT EXISTS {db_name}")
-    spark.catalog.setCurrentDatabase(db_name)
 
     update_stream = _subscribe_to_kafka_topic()
 
@@ -293,20 +303,30 @@ def start_consumer(kafka_topic, kafka_bootstrap_servers, db_name):
 
     all_views = [view_patients, view_cholesterol, view_bmi, view_diagnosis]
 
-    console_sinks = [view_f(data) \
-                         .writeStream \
-                         .outputMode("append") \
-                         .format("console") \
-                         .start(f"console_{view_f.__name__}") for view_f in all_views]
+    console_sinks = []
+    postgresql_sinks = []
 
-    parquet_sinks = [view_f(data) \
-                         .writeStream \
-                         .outputMode("append") \
-                         .format("parquet") \
-                         .queryName(f"table_{view_f.__name__}") \
-                         .toTable(view_f.__name__) for view_f in all_views]
+    for view_f in all_views:
+        view_name = view_f.__name__
+        view_data = view_f(data)
+        
+        # Console sink
+        console_sink = view_data \
+            .writeStream \
+            .outputMode("append") \
+            .format("console") \
+            .start(f"console_{view_name}")
+        console_sinks.append(console_sink)
+        
+        # PostgreSQL sink
+        postgresql_sink = view_data \
+            .writeStream \
+            .foreachBatch(lambda df, epoch_id, view_name=view_name: write_postgresql(df, db_name, view_name)) \
+            .outputMode("append") \
+            .start()
+        postgresql_sinks.append(postgresql_sink)
 
-    for sink in console_sinks + parquet_sinks:
+    for sink in console_sinks + postgresql_sinks:
         sink.awaitTermination()
 
 

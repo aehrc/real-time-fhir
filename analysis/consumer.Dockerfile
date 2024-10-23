@@ -31,7 +31,7 @@ COPY ./consumer_requirements.txt .
 RUN pip install --no-cache-dir -r consumer_requirements.txt
 
 # This caches the download of Spark and other dependencies.
-RUN python -c 'from pyspark.sql import SparkSession; from pathling._version import (__java_version__, __scala_version__, __delta_version__, __hadoop_version__); from pyspark import __version__ as __spark_version__; SparkSession.builder.config("spark.jars.packages", f"org.apache.spark:spark-sql-kafka-0-10_{__scala_version__}:{__spark_version__}," f"au.csiro.pathling:library-runtime:{__java_version__}," f"io.delta:delta-spark_{__scala_version__}:{__delta_version__}," f"org.apache.hadoop:hadoop-aws:{__hadoop_version__}").getOrCreate()'
+RUN python -c 'from pyspark.sql import SparkSession; from pathling._version import (__java_version__, __scala_version__, __delta_version__, __hadoop_version__); from pyspark import __version__ as __spark_version__; SparkSession.builder.config("spark.jars.packages", f"org.apache.spark:spark-sql-kafka-0-10_{__scala_version__}:{__spark_version__}," f"au.csiro.pathling:library-runtime:{__java_version__}," f"io.delta:delta-spark_{__scala_version__}:{__delta_version__}," f"org.apache.hadoop:hadoop-aws:{__hadoop_version__}," f"org.postgresql:postgresql:42.2.18").getOrCreate()'
 
 COPY streaming_views.py /app
 
